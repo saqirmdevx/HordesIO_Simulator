@@ -194,7 +194,7 @@ export default class player {
      * @param baseDamage - Flat value of Damage 
      * @param bonusDamage - %Damage based on min-max (Auras are counting average between min and max)
      */
-    public doDamage(baseDamage:number, bonusDamage:number, isAura:boolean = false) {
+    public doDamage(baseDamage:number, bonusDamage:number, isAura:boolean = false):void {
         let mindamage = this.baseStats.mindamage + this.bonusStats.mindamage;
         let maxdamage = this.baseStats.maxdamage + this.bonusStats.maxdamage;
 

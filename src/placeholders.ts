@@ -3,10 +3,15 @@ export enum Placeholders {
     GLOBAL_COOLDOWN = 1000 // 1sec
 }
 
-export function __calcHasteBonus(time, haste:number)
+/**
+ * Calculate time after haste modifier
+ * @param time - Base time in ms
+ * @param haste - haste % (stats)
+ */
+export function __calcHasteBonus(time:number, haste:number):number
 {
     return Math.floor(time / (1 + (haste / 100)));
 }
 
-export var __FPS = 20;
-export var __updateTime = 1000 / __FPS; // 20FPS  / 50ms update 
+export var __FPS:number = 20;
+export var __updateTime:number = 1000 / __FPS; // 20FPS  / 50ms update 

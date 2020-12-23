@@ -129,7 +129,7 @@ export default class Ability {
             this._storeEffect = undefined; // empty stored effect
     }
 
-    public doUpdate(diff:number) {
+    public doUpdate(diff:number):void {
         if (this.cooldown > 0)
             this.cooldown -= diff;
         

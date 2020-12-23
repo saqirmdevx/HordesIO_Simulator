@@ -57,7 +57,6 @@ export class CrescentSwipe {
 }
 
 export class UnholyWarcry {
-    // Unholy warcry provide Min and Max
     // Placeholder Values
     private static _mindamageBonus:number = 3; 
     private static _maxdamageBonus:number = 4; // we multiply by rank
@@ -99,7 +98,6 @@ export class UnholyWarcry {
 
 /*** Mage abilites */
 export class ChillingRadiance {
-    // Unholy warcry provide Min and Max
     // Placeholder Values
     private static _baseDamage:Array<number> = [0, 25, 40, 55, 70, 85];
     private static _bonusDamage:Array<number> = [0, 15, 20, 25, 30, 35]; // % Based on min/max damage

@@ -7,7 +7,7 @@ export default class simulation {
     private static _isActive = false;
     private static _isStopped = false;
     public static playerList:Array<Player> = [];
-    
+
     public static start(simulators:number):void {
         if (this._isActive)
         {
@@ -33,10 +33,8 @@ export default class simulation {
 
         // create players based on simulation
         if (simulators > 0 && simulators < 1000)
-        for (let i = 0; i < simulators; i++)
-        {
-            this.playerList[i] = new Player(i);
-        }
+            for (let i = 0; i < simulators; i++)
+                this.playerList[i] = new Player(i);
 
         Main.vue.combatLog = "Simulation starts";
 
@@ -63,13 +61,12 @@ export default class simulation {
             player.doUpdate(diff, this.tick);
         });
 
-        /** After 600 ticks which is 1min we end the calculation and comulate all damage done and dps */
+        /** After 60 sec ends the simulation **/
         if (this.timeElsaped > 60000)
         {
             this._done();
             return;
         }
-
         if (this.tick % 5 == 0)
             this._updateDamage();
 
@@ -80,7 +77,7 @@ export default class simulation {
         Main.vue.combatLog = "Simulation ends..\n" + Main.vue.combatLog;
         this._updateDamage();
 
-        // remove all players
+        // remove all players from list
         this.playerList.splice(0, this.playerList.length);
 
         this.timeElsaped = 0;
@@ -93,7 +90,6 @@ export default class simulation {
             highest: 0,
             lowest: 0,
             total: 0,
-
             dpsHighest: 0,
             dpsLowest: 0
         }
@@ -106,7 +102,7 @@ export default class simulation {
                 damage.lowest = player.damageDone;
             else
                 damage.lowest = Math.min(damage.lowest, player.damageDone);
-            
+
             damage.dpsHighest = Math.max(Math.floor(player.damageDone / (this.timeElsaped / 1000)), damage.dpsHighest);
             if (damage.dpsLowest == 0)
                 damage.dpsLowest = Math.floor(player.damageDone / (this.timeElsaped / 1000));
@@ -114,7 +110,7 @@ export default class simulation {
                 damage.dpsLowest = Math.min(Math.floor(player.damageDone / (this.timeElsaped / 1000)), damage.dpsLowest);
         });
 
-        // calculate DPS
+        // Update visible value of DPS/Damage on the page 
         Main.vue.damage.highest = damage.highest;
         Main.vue.damage.lowest = damage.lowest;
         Main.vue.damage.average = Math.floor(damage.total / this.playerList.length);
@@ -125,7 +121,7 @@ export default class simulation {
 
         Main.vue.activeAuras.splice(0, Main.vue.activeAuras.length);
 
-        /** Upate auras */
+        /** Update auras !move to another function later **/
         this.playerList[0]._activeAuras.forEach((aura:Aura, index:number) => {
             Main.vue.activeAuras[index] = {id: aura.id, duration: Math.floor(aura.duration / 1000)}
         });
