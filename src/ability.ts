@@ -90,8 +90,7 @@ export default class Ability {
             if (effect.castTime > 0)
                 Main.vue.combatLog = `[${Simulation.timeElsaped}ms] - Casting ability: [${this.id}]\n` + Main.vue.combatLog;
         
-        if (effect.castTime > 0)
-        {
+        if (effect.castTime > 0) {
             this.castTime = __calcHasteBonus(effect.castTime, this.owner.baseStats.haste + this.owner.bonusStats.haste); // add haste formular
             this.owner.isCasting = true;
 
@@ -109,8 +108,7 @@ export default class Ability {
         if (effect.damageBase > 0 || effect.damageBonus > 0)
             this.owner.doDamage(effect.damageBase, effect.damageBonus);
 
-        if (effect.applyAura && effect.auraEffect)
-        {
+        if (effect.applyAura && effect.auraEffect) {
             let aura:Aura = new Aura(this.id, effect.auraEffect.duration, effect.auraEffect)
             this.owner._activeAuras.push(aura);
         }
@@ -153,8 +151,7 @@ export default class Ability {
             manaCost: 0
         }
 
-        switch (Number(this.id))
-        {
+        switch (Number(this.id)) {
             case abilites.WAR_SLASH:
                 return Slash.getEffect(this.rank);
             case abilites.WAR_CRESCENTSWIPE:
@@ -227,8 +224,7 @@ export class Ranks {
     public static list:Map<abilites, number> = new Map();
 
     public static set(ability:abilites, value:number):void {
-        if (value == 0)
-        {
+        if (value == 0) {
             if (this.list.has(ability))
                 this.list.delete(ability);
             return;

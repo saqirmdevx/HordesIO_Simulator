@@ -62,11 +62,9 @@ export default class player {
         for (const [stat] of Object.entries(this.bonusStats)) 
             this.bonusStats[stat] = 0;
 
-        if (this._activeAuras.length > 0)
-        {
+        if (this._activeAuras.length > 0) {
             this._activeAuras.forEach((aura:Aura, index:number) => {
-                if (aura.toRemove)
-                {
+                if (aura.toRemove) {
                     // delete aura from list if duration is over
                     this._activeAuras.splice(index, 1);
                     return;
@@ -88,7 +86,7 @@ export default class player {
         if (this.abilityList.length > 0)
             this.abilityList.forEach((ability:Ability) => { ability.doUpdate(diff); });
 
-        if (this.globalCooldown < 20 && !this.isCasting)
+        if (this.globalCooldown <= 0 && !this.isCasting)
             this.doCast(diff, tick);
 
         this._auraDamageEffects(diff, tick);
@@ -166,8 +164,7 @@ export default class player {
     private _tickTimmer = 0;
     private _auraDamageEffects(diff:number, tick:number):void {
         this._tickTimmer += diff;
-        if (this._tickTimmer >= __calcHasteBonus(1000, this.baseStats.haste + this.bonusStats.haste))
-        {
+        if (this._tickTimmer >= __calcHasteBonus(1000, this.baseStats.haste + this.bonusStats.haste)) {
             this._tickIndexPop = this._tickIndexPop + this._tickIndexPop;
 
             if (this._activeAuras.length > 0)

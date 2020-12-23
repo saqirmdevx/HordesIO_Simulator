@@ -46,8 +46,7 @@ export class CrescentSwipe {
             ignoreAura: true
         }
 
-        if (clRank > 0)
-        {
+        if (clRank > 0) {
             //effect.auraEffect = centrifugalLaceration(clRank);
             /** Centrifugal */
         }

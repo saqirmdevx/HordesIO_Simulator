@@ -9,8 +9,7 @@ export default class simulation {
     public static playerList:Array<Player> = [];
 
     public static start(simulators:number):void {
-        if (this._isActive)
-        {
+        if (this._isActive) {
             // stop simulation
             this._isStopped = !this._isStopped;
             Main.vue.combatLog = this._isStopped ? "Combat is stopped\n"+ Main.vue.combatLog :
@@ -45,16 +44,13 @@ export default class simulation {
     public static tick = 0;
     public static timeElsaped = 0;
     private static _loop():void {
-        if (this._isStopped)
-        {
+        if (this._isStopped) {
             setTimeout(() => this._loop(), __updateTime);
             return;
         }
 
         // Locked timestep
         let diff = __updateTime * 3;
-        this.tick++;
-        this.timeElsaped += diff;
 
         /** Call doUpdate for each player */
         this.playerList.forEach((player) => {
@@ -62,13 +58,15 @@ export default class simulation {
         });
 
         /** After 60 sec ends the simulation **/
-        if (this.timeElsaped > 60000)
-        {
+        if (this.timeElsaped > 60000) {
             this._done();
             return;
         }
         if (this.tick % 5 == 0)
             this._updateDamage();
+
+        this.tick++;
+        this.timeElsaped += diff;
 
         setTimeout(() => this._loop(), __updateTime);
     }
