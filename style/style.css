@@ -1,0 +1,175 @@
+body {
+   outline: 0;
+   margin: 0;
+
+   color: black;
+   font-size: 18px;
+}
+
+.stat-input {
+    width: 42px;
+    margin-left: 4px;
+}
+
+.ability-input {
+    width: 64px;
+    margin-left: 3px;
+}
+
+.stats-sheet {
+    display: grid;
+    grid-template-rows: 60px 60px;
+    grid-template-columns: 180px 180px;
+
+    grid-column-gap: 2px;
+    grid-row-gap: 1px;
+
+    justify-content: space-evenly;
+    padding: 18px;
+
+    width: 400px;
+    margin: auto;
+}
+
+.stats-sheet .item {
+    display: flex;
+    width: 180px;
+    height: 60px;
+    background-color: #EEE;
+
+    justify-content: center;
+    align-items: center;
+}
+
+.stats-sheet .item:nth-child(4n+4),
+.stats-sheet .item:nth-child(4n+3) { background-color: #DDD; }
+
+.abilites {
+    border-top: 2px solid black;
+    margin-top: 50px;
+    padding: 30px 60px;
+}
+
+.abilites h1 {
+    font-weight: bold;
+    font-size: 24px;
+}
+
+.ability-bar {
+    display: flex;
+    
+}
+
+.ability-bar .ability {
+    width: 280px;
+    text-align: center;
+}
+
+.class {
+    background-color: #DDD;
+    padding: 6px;
+}
+.class:nth-child(2n) { background-color: #ccc; }
+
+.center-div {
+    display: block;
+    margin: auto;
+
+    text-align: center;
+}
+
+.button-sim {
+    text-align: center;
+    width: 164px;
+    height: 40px;
+    padding: 8px;
+
+    font-weight: bold;
+    
+    margin: 12px;
+}
+
+.combat {
+    display:block;
+    margin: auto;
+
+    width: 80%;
+}
+
+.combat p {
+    position:relative;
+    display: inline-block;
+
+    margin: 10px;
+    padding: 16px;
+
+    border: 1px solid gray;
+    border-radius: 8px;
+
+    font-size: 0.85em;
+    text-align: center;
+
+    width: 200px;
+}
+
+.combat p.highest { background-color: #ff838c }
+
+/** Progress bar **/
+@keyframes animateBar {
+    0% {
+      background-position: 0 0;
+    }
+    100% {
+      background-position: 50px 50px;
+    }
+  }
+
+.combat p > span {
+    position: absolute;
+    top: 0;
+    left: -0.5px;
+    height: 100%;
+    z-index: -1;
+    background-color: #ff838c;
+    border-radius: 7px 0px 0px 7px;
+
+    transition: width 0.8s;
+
+    overflow: hidden;
+}
+
+.combat p > span:after {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background-image: linear-gradient(
+      -45deg, 
+      rgba(255, 255, 255, .2) 25%, 
+      transparent 25%, 
+      transparent 50%, 
+      rgba(255, 255, 255, .2) 50%, 
+      rgba(255, 255, 255, .2) 75%, 
+      transparent 75%, 
+      transparent
+    );
+    z-index: 1;
+
+    background-size: 50px 50px;
+
+    animation: animateBar 2s linear infinite;
+
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+    border-top-left-radius: 20px;
+    border-bottom-left-radius: 20px;
+
+    overflow: hidden;
+  }
+
+.combat textarea {
+    width: 100%;
+    height: 400px;
+
+    margin: 8px;
+    padding: 8px;
+}
