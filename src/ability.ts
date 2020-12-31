@@ -1,16 +1,17 @@
 import Player from "./player.js";
-import Main from "./main.js"
-import Simulation from "./simulation.js"
+import Main from "./main.js";
+import Aura, { auraEffect } from "./aura.js";
 
 import { Placeholders, __calcHasteBonus } from "./placeholders.js";
-import { statTypes } from "./stats.js";
 
-import { UnholyWarcry, Slash, CrescentSwipe, ChillingRadiance, IceBolt, IcicleOrb } from "./ability_scripts.js";
-
-export enum abilites {
+export enum abilityList {
     WAR_SLASH = 0,
     WAR_CRESCENTSWIPE = 1,
     WAR_UNHOLYWARCRY = 2,
+    WAR_UNHOLYWARCRY_AURA = 1001,
+
+    WAR_CENTRIFUGAL_LACERATION = 3,
+    WAR_CENTRIFUGAL_LACERATION_AURA = 1002,
 
     MAGE_ICEBOLT = 20,
     //**Icebolt auras */
@@ -19,99 +20,86 @@ export enum abilites {
     MAGE_ICEBOLT_INSTANT = 2003,
 
     MAGE_ICICLEORB = 21,
-    MAGE_CHILLINGRADIANCE = 22
+    MAGE_CHILLINGRADIANCE = 22,
+    MAGE_CHILLINGRADIANCE_AURA = 2004,
+
+    MAGE_ENCHANT = 23,
+    MAGE_ENCHANT_AURA = 2005,
 }
 
 export enum abilityPrior {
-    HIGH_PRIORITY,
-    MEDIUM_PRIORITY,
     LOW_PRIORITY,
+    MEDIUM_PRIORITY,
+    HIGH_PRIORITY,
     BUFFS,
     PASSIVE
 }
 
-export let abilityPriorList:Array<any> = [];
-abilityPriorList[abilityPrior.HIGH_PRIORITY] = [ 
-    abilites.MAGE_CHILLINGRADIANCE 
-];
-
-abilityPriorList[abilityPrior.MEDIUM_PRIORITY] = [ 
-    abilites.MAGE_ICICLEORB, 
-    abilites.WAR_CRESCENTSWIPE 
-];
-
-abilityPriorList[abilityPrior.LOW_PRIORITY] = [ 
-    abilites.MAGE_ICEBOLT, 
-    abilites.WAR_SLASH 
-];
-
-abilityPriorList[abilityPrior.BUFFS] = [ 
-    abilites.WAR_UNHOLYWARCRY 
-];
-
 export interface spellEffect {
-    damageBase: number,
-    damageBonus: number,
-    applyAura:boolean,
-    auraEffect?:auraEffect,
+    baseDamage: number,
+    bonusDamage: number,
     cooldown:number,
     castTime:number,
     hasGlobal:boolean,
     manaCost:number,
-    ignoreAura?:boolean
+    canCrit?:boolean
 }
 
-export default class Ability {
+export default abstract class Ability {
     public id:number;
     public rank:number;
 
     public owner:Player;
 
-    public cooldown:number = 0;
-    public ignoreAura:boolean = false;
-    public castTime:number = 0;
-    private _storeEffect?:spellEffect;
+    public name:string = "undefined"; // Ability Name just for debuging
 
-    constructor(id:abilites, rank:number, owner:Player)
-    {
+    public cooldown:number = 0;
+    public castTime:number = 0;
+
+    public isAoe:boolean = false;
+    public maxTargets:number = 20;
+
+    public applyAuraId:number = 0;
+    public ignoreAura:boolean = false;
+
+    private _storeEffect: spellEffect|undefined;
+
+    // Default
+    public priority:abilityPrior = abilityPrior.LOW_PRIORITY;
+
+    constructor(id:number, rank:number, owner:Player) {
         this.id = id;
         this.rank = rank;
         this.owner = owner;
     }
 
-    //testing
-    public cast():void {
-        let effect = this._spellEffect();
+    public getEffect(rank:number):spellEffect|undefined { return; }
+
+    public cast(timeElsaped:number):void {
+        let effect:spellEffect|undefined = this.getEffect(this.rank);
+        if (!effect)
+            return;
 
         if (effect.hasGlobal)
             this.owner.globalCooldown = Placeholders.GLOBAL_COOLDOWN;
 
-        if (this.owner.id == 0)
+        if (this.owner.id == 0 && Main.vue.debugText)
             if (effect.castTime > 0)
-                Main.vue.combatLog = `[${Simulation.timeElsaped}ms] - Casting ability: [${this.id}]\n` + Main.vue.combatLog;
+                Main.addCombatLog(` cast: [${this.name}]`, timeElsaped);
         
         if (effect.castTime > 0) {
             this.castTime = __calcHasteBonus(effect.castTime, this.owner.baseStats.haste + this.owner.bonusStats.haste); // add haste formular
             this.owner.isCasting = true;
-
             this._storeEffect = effect;
             return;
         }
-        this._done(effect);
+        this._done(effect, timeElsaped);
     }
 
     /** When cast is done */
-    private _done(effect:spellEffect):void {
-        if (this.owner.id == 0)
-            Main.vue.combatLog = `[${Simulation.timeElsaped}ms] - cast: [${this.id}]\n` + Main.vue.combatLog;
-
-        if (effect.damageBase > 0 || effect.damageBonus > 0)
-            this.owner.doDamage(effect.damageBase, effect.damageBonus);
-
-        if (effect.applyAura && effect.auraEffect) {
-            let aura:Aura = new Aura(this.id, effect.auraEffect.duration, effect.auraEffect)
-            this.owner._activeAuras.push(aura);
-        }
+    private _done(effect: spellEffect|undefined, timeElsaped:number):void {
+        if (!effect)
+            return;
 
         if (effect.cooldown)
             this.cooldown = __calcHasteBonus(effect.cooldown, this.owner.baseStats.haste + this.owner.bonusStats.haste);
@@ -119,129 +107,100 @@ export default class Ability {
         if (effect.manaCost > 0)
             this.owner.mana = 0;
 
-        if (effect.ignoreAura)
-            this.ignoreAura = true;
+        if (this.owner.id == 0 && Main.vue.debugText)
+            Main.addCombatLog(` cast done: [${this.name}]`, timeElsaped);
+
+        this.onImpact(effect, timeElsaped);
+
+        this._storeEffect = undefined;
 
         this.owner.isCasting = false;
-        if (this._storeEffect)
-            this._storeEffect = undefined; // empty stored effect
     }
 
-    public doUpdate(diff:number):void {
+    public doUpdate(diff:number, timeElsaped:number):void {
         if (this.cooldown > 0)
             this.cooldown -= diff;
         
         if (this.castTime > 0)
             this.castTime -= diff;
         
-        if (this.owner.isCasting && this.castTime <= 0)
-            if (this._storeEffect)
-                this._done(this._storeEffect);
+        if (this.owner.isCasting && this.castTime <= 0 && this._storeEffect)
+            this._done(this._storeEffect, timeElsaped);
     }
 
-    /** Do cast Scripts */
-    private _spellEffect():spellEffect {
-        let effect:spellEffect = {
-            damageBase: 0,
-            damageBonus: 0,
-            applyAura: false,
-            cooldown: 0,
-            castTime: 0,
-            hasGlobal: true,
-            manaCost: 0
+    public dealDamage(effect:spellEffect, timeElsaped:number, modifier:number = 1, critModifier:number = 0):void {
+        let baseDamage:number = effect.baseDamage;
+        let bonusDamage:number = effect.bonusDamage;
+
+        let critChance:number = this.owner.baseStats.critical + this.owner.bonusStats.critical + critModifier;
+
+        /** If ability is AOE then deal damage multiple times */
+        if (this.isAoe) {
+            let targets:number = Main.vue.targets > this.maxTargets ? this.maxTargets : Main.vue.targets;
+            for (let i = 0; i < targets; i++) {
+                if (Math.random() * 100 < critChance)
+                    modifier *= this.onCrit();
+
+                this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
+            }
+            return;
         }
 
-        switch (Number(this.id)) {
-            case abilites.WAR_SLASH:
-                return Slash.getEffect(this.rank);
-            case abilites.WAR_CRESCENTSWIPE:
-                return CrescentSwipe.getEffect(this.rank, 0);
-            case abilites.WAR_UNHOLYWARCRY:
-                return UnholyWarcry.getEffect(this.rank);
-            case abilites.MAGE_ICEBOLT:
-                return IceBolt.getEffect(this.rank, false);
-            case abilites.MAGE_ICICLEORB:
-                return IcicleOrb.getEffect(this.rank);
-            case abilites.MAGE_CHILLINGRADIANCE:
-                return ChillingRadiance.getEffect(this.rank);
-            default: break;
+        if (Math.random() * 100 < critChance)
+            modifier *= this.onCrit();
+    
+        this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
+    }
+
+    /*** Hooks */
+    public applyAura(effect:auraEffect):void {
+        let findAura:Aura|undefined = this.owner.getAuraById(effect.id);
+        if (findAura) {
+            findAura.reapply(effect);
+            return;
         }
-        return effect;
-    }
-}
+        let aura:Aura;
+        if (effect.script)
+            aura = new effect.script(effect, this.owner);
+        else
+            aura = new Aura(effect, this.owner);
 
-export interface auraEffect {
-        bonusStats?: statTypes,
-        damageEffect?: { baseDamage: number, bonusDamage:number, tickIndex: number},
-        hasDamageEffect: boolean,
-        duration: number
-}
-
-export class Aura {
-    public id:number;
-    public duration:number;
-    private _effect:auraEffect;
-
-    public tickTime:number = 0;
-    public stack:number = 1;
-
-    public toRemove:boolean = false;
-
-    constructor(ability:abilites, duration: number, effect:auraEffect) {
-        this.id = ability;
-        this.duration = duration;
-
-        this._effect = effect;
-
-        this.tickTime = this._effect.damageEffect ? this._effect.damageEffect.tickIndex * 1000 : 0;
+        this.owner.applyAura(aura);
     }
 
-    public doUpdate(diff:number, tick:number):void {
-        this.duration -= diff;
-
-        if (this.duration <= 0)
-            this.expire();
-
-        if (this.tickTime > 0)
-            this.tickTime -= diff;
+    public onCrit():number {
+        return Placeholders.CRITICAL_DAMAGE;
     }
 
-    public expire():void {
-        this.delete();
-    }
-
-    public delete():void {
-        this.toRemove = true;
-    }
-
-    public getEffect():auraEffect {
-        return this._effect;
+    public onImpact(effect:spellEffect, timeElsaped:number):void {
+        if (effect.baseDamage > 0 || effect.bonusDamage > 0)
+            this.dealDamage(effect, timeElsaped);
     }
 }
 
 export class Ranks {
     /** Abilites **/
-    public static list:Map<abilites, number> = new Map();
+    public static list:Map<abilityList, number> = new Map();
 
-    public static set(ability:abilites, value:number):void {
+    public static set(ability:abilityList, value:number):void {
         if (value == 0) {
-            if (this.list.has(ability))
+            if (this.has(ability))
                 this.list.delete(ability);
             return;
         }
-        this.list.set(ability, value);
+        this.list.set(ability, Number(value));
     }
 
-    public static get(ability:abilites):abilites | undefined {
-        if (this.list.has(ability))
+    public static get(ability:abilityList):abilityList | undefined {
+        if (this.has(ability))
             return this.list.get(ability);
         else
             return 0;
     }
 
-    public static has(ability:abilites):boolean {
+    public static has(ability:abilityList):boolean {
         if (this.list.has(ability))
-            return this.list.get(ability) as number > 0;
+            return true;
         return false;
     }
 

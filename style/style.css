@@ -12,7 +12,7 @@ body {
 }
 
 .ability-input {
-    width: 64px;
+    width: 78px;
     margin-left: 3px;
 }
 
@@ -57,12 +57,15 @@ body {
 
 .ability-bar {
     display: flex;
-    
+    flex-wrap: wrap;
 }
 
 .ability-bar .ability {
-    width: 280px;
+    flex: 1 0 19%; /* explanation below */
     text-align: center;
+
+    margin-top: 12px;
+    margin-bottom: 6px;
 }
 
 .class {
@@ -133,8 +136,6 @@ body {
     background-color: #ff838c;
     border-radius: 7px 0px 0px 7px;
 
-    transition: width 0.8s;
-
     overflow: hidden;
 }
 
@@ -173,3 +174,46 @@ body {
     margin: 8px;
     padding: 8px;
 }
+
+#loading {
+    position: fixed;
+    top: 0;
+    left: 0;
+
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background-color: #000000bd
+}
+
+.loadingIco {
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    bottom: 50%;
+    right: 50%;
+    top: 50%;
+    left: 50%;
+    margin-top: -60px;
+    margin-left: -60px;
+  }
+  .loadingIco:after {
+    content: " ";
+    display: block;
+    width: 96px;
+    height: 96px;
+    margin: 12px;
+    border-radius: 50%;
+    border: 6px solid #fff;
+    border-color: #fff transparent #fff transparent;
+    animation: loadingIco 1.5s linear infinite;
+  }
+  @keyframes loadingIco {
+    0% {
+      transform: rotate(0deg);
+    }
+    100% {
+      transform: rotate(360deg);
+    }
+  }
+  

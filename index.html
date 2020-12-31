@@ -11,15 +11,16 @@
 </head>
 <body>
     <div id="app">
+        <div id="loading" v-show="loading"><span class="loadingIco"></span></div>
         <div class="stats-sheet">
-            <div class="item">Mana: <input class="stat-input" type="number" name="mana" v-model="stats.mana" @input="updateStats($event)" /> </div>
-            <div class="item">Mana Regen: <input class="stat-input" type="number" name="manaregen" v-model="stats.manaregen" @input="updateStats($event)" /> </div>
-            <div class="item">Defense: <input class="stat-input" type="number" name="defense" v-model="stats.defense" @input="updateStats($event)" /> </div>
-            <div class="item">Block: <input class="stat-input" type="number" step="0.1" name="block" v-model="stats.block" @input="updateStats($event)" />% </div>
-            <div class="item">Min Damage: <input class="stat-input" type="number" name="mindamage" v-model="stats.mindamage" @input="updateStats($event)" /> </div>
-            <div class="item">Max Damage: <input class="stat-input" type="number" name="maxdamage" v-model="stats.maxdamage" @input="updateStats($event)" /> </div>
-            <div class="item">Haste: <input class="stat-input" type="number" step="0.1" name="haste" v-model="stats.haste"  @input="updateStats($event)" />% </div>
-            <div class="item">Critical: <input class="stat-input" type="number" step="0.1" name="critical" v-model="stats.critical" @input="updateStats($event)" />% </div>
+            <div class="item">Mana: <input class="stat-input" type="number" name="mana" v-model="stats.mana" @blur="updateStats($event)" /> </div>
+            <div class="item">Mana Regen: <input class="stat-input" type="number" name="manaregen" v-model="stats.manaregen" @blur="updateStats($event)" /> </div>
+            <div class="item">Defense: <input class="stat-input" type="number" name="defense" v-model="stats.defense" @blur="updateStats($event)" /> </div>
+            <div class="item">Block: <input class="stat-input" type="number" step="0.1" name="block" v-model="stats.block" @blur="updateStats($event)" />% </div>
+            <div class="item">Min Damage: <input class="stat-input" type="number" name="mindamage" v-model="stats.mindamage" @blur="updateStats($event)" /> </div>
+            <div class="item">Max Damage: <input class="stat-input" type="number" name="maxdamage" v-model="stats.maxdamage" @blur="updateStats($event)" /> </div>
+            <div class="item">Haste: <input class="stat-input" type="number" step="0.1" name="haste" v-model="stats.haste"  @blur="updateStats($event)" />% </div>
+            <div class="item">Critical: <input class="stat-input" type="number" step="0.1" name="critical" v-model="stats.critical" @blur="updateStats($event)" />% </div>
         </div>
 
         <div class="abilites">
@@ -28,15 +29,19 @@
                 <h1> Warrior </h1>
                 <div class="ability-bar">
                     <div class="ability">
-                        Slash: <input class="ability-input" type="range" name="slash" min="0" max="5" value="0" data-id="0" @input="updateSkillPoints($event)"/>
+                        Slash: <br/> <input class="ability-input" type="range" name="slash" min="0" max="5" value="0" data-id="0" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                     <div class="ability">
-                        Crescent Swipe: <input class="ability-input" type="range" name="crescentSwipe" min="0" max="5" value="0" data-id="1" @input="updateSkillPoints($event)"/>
+                        Crescent Swipe: <br/> <input class="ability-input" type="range" name="crescentSwipe" min="0" max="5" value="0" data-id="1" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                     <div class="ability">
-                        Unholy Warcry: <input class="ability-input" type="range" name="unholyWarcry" min="0" max="4" value="0" data-id="2" @input="updateSkillPoints($event)"/>
+                        Centrifugal Laceration: <br/> <input class="ability-input" type="range" name="centrifugalLaceration" min="0" max="5" value="0" data-id="3" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Unholy Warcry: <br/> <input class="ability-input" type="range" name="unholyWarcry" min="0" max="4" value="0" data-id="2" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                 </div>
@@ -46,15 +51,19 @@
                 <h1> Mage </h1>
                 <div class="ability-bar">
                     <div class="ability">
-                        Ice bolt: <input class="ability-input" type="range" name="iceBolt" min="0" max="5" value="0" data-id="20" @input="updateSkillPoints($event)"/>
+                        Ice bolt: <br/> <input class="ability-input" type="range" name="iceBolt" min="0" max="5" value="0" data-id="20" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                     <div class="ability">
-                        Icicle Orb: <input class="ability-input" type="range" name="icicleOrb" min="0" max="5" value="0" data-id="21" @input="updateSkillPoints($event)"/>
+                        Icicle Orb: <br/> <input class="ability-input" type="range" name="icicleOrb" min="0" max="5" value="0" data-id="21" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                     <div class="ability">
-                        Chilling radiance: <input class="ability-input" type="range" name="chillingRadiance" min="0" max="5" value="0" data-id="22" @input="updateSkillPoints($event)"/>
+                        Chilling radiance: <br/> <input class="ability-input" type="range" name="chillingRadiance" min="0" max="5" value="0" data-id="22" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Enchant: <br/> <input class="ability-input" type="range" name="Enchant" min="0" max="4" value="0" data-id="23" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                 </div>
@@ -62,8 +71,9 @@
         </div>
 
         <div class="center-div"> 
-            Simulators: <input class="ability-input" type="number" v-model.number="simulators"/><br />
+            Simulators: <input class="ability-input" type="number" v-model.number="simulators"/> Targets: <input class="ability-input" type="number" v-model.number="targets"/><br />
             <button class="button-sim" @click="startSimulation()">Start simulation</button>
+            Debug Text: <input type="checkbox" v-model.boolean="debugText" />
         </div>
         <hr>
         <div class="combat">

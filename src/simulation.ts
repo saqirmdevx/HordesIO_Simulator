@@ -1,26 +1,22 @@
-import { Aura } from "./ability.js";
 import Main from "./main.js";
 import Player from "./player.js"
-import { __updateTime } from "./placeholders.js"
 
-export default class simulation {
+export default class Simulation {
     private static _isActive = false;
-    private static _isStopped = false;
     public static playerList:Array<Player> = [];
 
-    public static start(simulators:number):void {
-        if (this._isActive) {
-            // stop simulation
-            this._isStopped = !this._isStopped;
-            Main.vue.combatLog = this._isStopped ? "Combat is stopped\n"+ Main.vue.combatLog :
-                                 "Continue combat\n"+ Main.vue.combatLog;
+    public static startTime:number;
+
+    public static async start(simulators:number):Promise<void> {
+        if (this._isActive)
             return;
-        }
+
+        this.startTime = Date.now();
 
         this._isActive = true;
+        Main.vue.loading = true;
 
-        // reset combatlog
-        Main.vue.combatLog = "";
+        Main.resetCombatLog("Simulation starts");
 
         // reset damage counters
         Main.vue.damage.highest = 0;
@@ -31,59 +27,57 @@ export default class simulation {
         Main.vue.dps.average = 0;
 
         // create players based on simulation
-        if (simulators > 0 && simulators < 1000)
+        if (simulators > 0 && simulators <= 500)
             for (let i = 0; i < simulators; i++)
                 this.playerList[i] = new Player(i);
 
-        Main.vue.combatLog = "Simulation starts";
-
-        // run the loop
-        this._loop();
+        let timeElsaped = await this._result();
+        this._done(timeElsaped);
     }
+    private static async _result():Promise<number> {
+        return new Promise(async (resolve:any, reject:any) => { 
+            // Locked timestep
+            let chunk:number = 300;
+            let updateTime:number = 100;
+            let timeElsaped:number = 0;
 
-    public static tick = 0;
-    public static timeElsaped = 0;
-    private static _loop():void {
-        if (this._isStopped) {
-            setTimeout(() => this._loop(), __updateTime);
-            return;
-        }
-
-        // Locked timestep
-        let diff = __updateTime * 3;
-
-        /** Call doUpdate for each player */
-        this.playerList.forEach((player) => {
-            player.doUpdate(diff, this.tick);
+            this._simulation(updateTime, timeElsaped, chunk, (resultTime:number) => {
+                resolve(resultTime);
+            });
         });
-
-        /** After 60 sec ends the simulation **/
-        if (this.timeElsaped > 60000) {
-            this._done();
-            return;
-        }
-        if (this.tick % 5 == 0)
-            this._updateDamage();
-
-        this.tick++;
-        this.timeElsaped += diff;
-
-        setTimeout(() => this._loop(), __updateTime);
     }
 
-    private static _done():void {
-        Main.vue.combatLog = "Simulation ends..\n" + Main.vue.combatLog;
-        this._updateDamage();
+    private static _simulation(updateTime:number, timeElsaped:number, chunk:number, callback:CallableFunction):void {
+        let itr:number = 0;
+        while (itr < chunk)
+        {
+            itr++;
+            this.playerList.forEach((player) => {
+                player.doUpdate(updateTime, timeElsaped);
+            });
+
+            timeElsaped += updateTime;
+            if (timeElsaped >= 300000) {
+                callback(timeElsaped);
+                return;
+            }
+        }
+
+        setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk, callback) }, 0);
+    }
+
+    private static _done(timeElsaped:number):void {
+        Main.addCombatLog(`Simulation ends in ${Date.now() - this.startTime}ms\n`, timeElsaped);
+        this._updateDamage(timeElsaped);
 
         // remove all players from list
         this.playerList.splice(0, this.playerList.length);
 
-        this.timeElsaped = 0;
-        this.tick = 0;
         this._isActive = false;
+        Main.vue.loading = false;
     }
 
-    private static _updateDamage():void {
+    private static _updateDamage(timeElsaped:number):void {
         let damage:any = {
             highest: 0,
             lowest: 0,
@@ -101,11 +95,11 @@ export default class simulation {
             else
                 damage.lowest = Math.min(damage.lowest, player.damageDone);
 
-            damage.dpsHighest = Math.max(Math.floor(player.damageDone / (this.timeElsaped / 1000)), damage.dpsHighest);
+            damage.dpsHighest = Math.max(Math.floor(player.damageDone / (timeElsaped / 1000)), damage.dpsHighest);
             if (damage.dpsLowest == 0)
-                damage.dpsLowest = Math.floor(player.damageDone / (this.timeElsaped / 1000));
+                damage.dpsLowest = Math.floor(player.damageDone / (timeElsaped / 1000));
             else
-                damage.dpsLowest = Math.min(Math.floor(player.damageDone / (this.timeElsaped / 1000)), damage.dpsLowest);
+                damage.dpsLowest = Math.min(Math.floor(player.damageDone / (timeElsaped / 1000)), damage.dpsLowest);
         });
 
         // Update visible value of DPS/Damage on the page 
@@ -115,13 +109,11 @@ export default class simulation {
 
         Main.vue.dps.highest = damage.dpsHighest;
         Main.vue.dps.lowest = damage.dpsLowest;
-        Main.vue.dps.average = Math.floor((damage.total / this.playerList.length) / (this.timeElsaped / 1000));
-
-        Main.vue.activeAuras.splice(0, Main.vue.activeAuras.length);
+        Main.vue.dps.average = Math.floor((damage.total / this.playerList.length) / (timeElsaped / 1000));
 
         /** Update auras !move to another function later **/
-        this.playerList[0]._activeAuras.forEach((aura:Aura, index:number) => {
-            Main.vue.activeAuras[index] = {id: aura.id, duration: Math.floor(aura.duration / 1000)}
+        this.playerList[0]._activeAuras.forEach((aura:any, index:number) => {
+            Main.vue.activeAuras[index] = {id: aura.id, duration: Math.floor(aura.duration / 1000), stacks: aura.getStacks()}
         });
     }
 }
