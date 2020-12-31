@@ -1,7 +1,8 @@
 import Aura, { auraEffect } from "./aura.js";
 import Player from "./player.js";
 import { abilityList } from "./ability.js";
-import main from "./main.js";
+import Main from "./main.js";
+import { __random } from "./placeholders.js";
 
 export class MageIceboltInstant extends Aura {
     constructor(effect:auraEffect, owner:Player) {
@@ -34,42 +35,52 @@ export class WarBulwark extends Aura {
     // Apply interval
     private _applyInterval = 1000; // We simulate attack speed of enemies + targets 
     public doUpdate(diff:number, timeElsaped:number) {
+        // Call baseclass doUpdate
+        super.doUpdate(diff, timeElsaped);
+
         this._applyInterval -= diff
         if (this._applyInterval <= 0) {
             this._applyInterval = 1000;
 
-            let bonusDamageMin:number = (this.owner.baseStats.mindamage + this.owner.bonusStats.maxdamage) * this._bonusDamage[this.rank];
-            let bonusDamageMax:number = (this.owner.baseStats.maxdamage + this.owner.bonusStats.mindamage) * this._bonusDamage[this.rank];
-            
+            let applyStacks:number = 0;
 
-            let bulwarkDamageAura:Aura|undefined = this.owner.getAuraById(this._applyAura);
-            if (bulwarkDamageAura) {
-                bonusDamageMin = (this.owner.baseStats.mindamage + (this.owner.bonusStats.mindamage - bulwarkDamageAura.bonusStats.mindamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
-                bonusDamageMax = (this.owner.baseStats.maxdamage + (this.owner.bonusStats.maxdamage - bulwarkDamageAura.bonusStats.maxdamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
+            // count how much stack we apply (based on the block %)
+            for (let i = 0; i < Main.vue.targets; i++)
+                if (__random(0,100) < (this.owner.baseStats.block + this.owner.bonusStats.block))
+                    applyStacks++;
+
+            if (applyStacks) {
+                let bonusDamageMin:number = (this.owner.baseStats.mindamage + this.owner.bonusStats.maxdamage) * this._bonusDamage[this.rank];
+                let bonusDamageMax:number = (this.owner.baseStats.maxdamage + this.owner.bonusStats.mindamage) * this._bonusDamage[this.rank];
+                
+
+                let bulwarkDamageAura:Aura|undefined = this.owner.getAuraById(this._applyAura);
+                if (bulwarkDamageAura) {
+                    bonusDamageMin = (this.owner.baseStats.mindamage + (this.owner.bonusStats.mindamage - bulwarkDamageAura.bonusStats.mindamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
+                    bonusDamageMax = (this.owner.baseStats.maxdamage + (this.owner.bonusStats.maxdamage - bulwarkDamageAura.bonusStats.maxdamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
+                }
+        
+                // apply Damage stack buff 
+                let auraEffect:auraEffect = {
+                    id: this._applyAura,
+                    bonusStats: {
+                        manaregen:0,
+                        defense:0,
+                        block: 0,
+                        mindamage: bonusDamageMin,
+                        maxdamage: bonusDamageMax,
+                        critical:0,
+                        haste:0
+                    },
+                    hasDamageEffect: false,
+                    duration: this._duration,
+                    rank: this.rank,
+                    isStackable: true,
+                    maxStacks: 8,
+                    applyStacks: applyStacks
+                }
+                this.applyAura(auraEffect);
             }
-    
-            // apply Damage stack buff 
-            let auraEffect:auraEffect = {
-                id: this._applyAura,
-                bonusStats: {
-                    manaregen:0,
-                    defense:0,
-                    block: 0,
-                    mindamage: bonusDamageMin,
-                    maxdamage: bonusDamageMax,
-                    critical:0,
-                    haste:0
-                },
-                hasDamageEffect: false,
-                duration: this._duration,
-                rank: this.rank,
-                isStackable: true,
-                maxStacks: 8,
-                applyStacks: main.vue.targets
-            }
-            this.applyAura(auraEffect);
         }
-
-        super.doUpdate(diff, timeElsaped);
     }
 }

@@ -46,9 +46,6 @@ export default class Simulation {
         while (itr < chunk)
         {
             itr++;
-            /**this.playerList.forEach((player) => {
-                player.doUpdate(updateTime, timeElsaped);
-            });**/
             for (let i = 0; i < this.playerList.length; i++)
                 this.playerList[i].doUpdate(updateTime, timeElsaped);
 
@@ -59,6 +56,7 @@ export default class Simulation {
             }
         }
 
+        this._updateDamage(timeElsaped);
         setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk+100, callback) }, 0);
     }
 
