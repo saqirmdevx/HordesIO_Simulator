@@ -71,7 +71,8 @@ export default class Player {
         }
 
         this._activeAuras.forEach((aura:Aura, index:number) => {
-            aura.doUpdate(diff, timeElsaped);
+            if (!aura.isPassive)
+                aura.doUpdate(diff, timeElsaped);
 
             if (aura.toRemove) {
                 this._activeAuras.splice(index, 1);

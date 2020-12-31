@@ -38,11 +38,13 @@ export default class Aura {
     };
 
     public tickTime:number = 1000;
+
     protected _stacks:number = 1;
     protected _isStackable:boolean = false;
     protected _maxStacks:number = 1;
 
     public toRemove:boolean = false;
+    public isPassive:boolean = false; /** passive auras */
 
     constructor(effect:auraEffect, owner:Player) {
         this.id = effect.id;
@@ -113,7 +115,10 @@ export default class Aura {
 
     protected onApply(effect:auraEffect):void {
         // refresh duration
-        this.duration = effect.duration;
+        this.duration = effect.duration > 0 ? effect.duration : -1;
+        if (this.duration == -1) {
+            this.isPassive = true;
+        }
 
         // update Effect
         this._effect = effect;

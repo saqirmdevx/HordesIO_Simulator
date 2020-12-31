@@ -99,7 +99,37 @@ export class CentrifugalLaceration extends Ability {
         super(id, rank, owner);
 
         this.priority = abilityPrior.PASSIVE;
-        this.name = `CentrifugalLaceration ${rank}`;
+        this.name = `Centrifugal Laceration ${rank}`;
+    }
+}
+
+export class ArmorReinforcement extends Ability {
+    // Placeholder values per rank
+    public static bonusDefense:Array<number> = [0, 60, 80, 100, 120, 140]; // % Based on min/max damage
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.PASSIVE;
+        this.name = `Armor Reinforcement ${rank}`;
+
+        let auraEffect:auraEffect = {
+            id: this._applyAura,
+            bonusStats: {
+                manaregen:0,
+                defense:0,
+                block:0,
+                mindamage: this._minbonusDamage * this.rank,
+                maxdamage: this._maxbonusDamage * this.rank,
+                critical:0,
+                haste:0
+            },
+            hasDamageEffect: false,
+            duration: this._duration,
+            rank: this.rank
+        }
+    
+        this.applyAura(auraEffect);
     }
 }
 
