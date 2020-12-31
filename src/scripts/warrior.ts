@@ -2,6 +2,7 @@ import Ability, { spellEffect, abilityPrior, abilityList } from "../ability.js";
 import Player from "../player.js";
 
 import { auraEffect } from "../aura.js";
+import * as AuraScripts from "../aura_scripts.js";
 
 /*** Warrior abilites */
 export class Slash extends Ability {
@@ -23,7 +24,6 @@ export class Slash extends Ability {
             bonusDamage: this._bonusdamage[rank],
             cooldown: 0,
             castTime: 0,
-            hasGlobal: true,
             manaCost: this._manaCost[rank]
         }
 
@@ -55,7 +55,6 @@ export class CrescentSwipe extends Ability {
             bonusDamage: this._bonusdamage[rank],
             cooldown: this._cooldown,
             castTime: 0,
-            hasGlobal: true,
             manaCost: this._manaCost[rank],
         }
         return effect;
@@ -105,7 +104,9 @@ export class CentrifugalLaceration extends Ability {
 
 export class ArmorReinforcement extends Ability {
     // Placeholder values per rank
-    public static bonusDefense:Array<number> = [0, 60, 80, 100, 120, 140]; // % Based on min/max damage
+    public bonusDefense:Array<number> = [0, 60, 80, 100, 120, 140]; // % Based on min/max damage
+
+    public _applyAura:abilityList = abilityList.WAR_ARMOR_REINFORCEMENT_AURA;
 
     constructor(id:number, rank:number, owner:Player) {
         super(id, rank, owner);
@@ -117,15 +118,15 @@ export class ArmorReinforcement extends Ability {
             id: this._applyAura,
             bonusStats: {
                 manaregen:0,
-                defense:0,
+                defense: this.bonusDefense[this.rank],
                 block:0,
-                mindamage: this._minbonusDamage * this.rank,
-                maxdamage: this._maxbonusDamage * this.rank,
+                mindamage: 0,
+                maxdamage: 0,
                 critical:0,
                 haste:0
             },
             hasDamageEffect: false,
-            duration: this._duration,
+            duration: -1,
             rank: this.rank
         }
     
@@ -156,7 +157,6 @@ export class UnholyWarcry extends Ability {
             bonusDamage: 0,
             cooldown: this._cooldown,
             castTime: 0,
-            hasGlobal: true,
             manaCost: this._manaCost[rank],
         }
 
@@ -188,5 +188,220 @@ export class UnholyWarcry extends Ability {
         }
 
         this.applyAura(auraEffect);
+    }
+}
+
+export class Taunt extends Ability {
+    /** !!!! ->This ability has no effect at the current simulation  */
+    private _manaCost:Array<number> = [0, 4, 8, 12, 16, 20];
+    private _cooldown:number = 15000;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.MEDIUM_PRIORITY;
+        this.name = `Taunt ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0,
+            manaCost: this._manaCost[rank]
+        }
+
+        return effect;
+    }
+}
+
+export class Charge extends Ability {
+    /** !!!! ->This ability has no effect at the current simulation  */
+    private _manaCost:Array<number> = [0, 12];
+    private _cooldown:number = 15000;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.HIGH_PRIORITY;
+        this.name = `Charge ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0,
+            manaCost: this._manaCost[rank]
+        }
+
+        return effect;
+    }
+}
+
+export class CrusadersCourage extends Ability {
+    // Placeholder Values
+    private _bonusDefense:Array<number> = [0, 30, 53, 77, 102, 127];
+    private _duration:number = 300000;
+    private _manaCost:Array<number> = [0, 8, 16, 24, 32, 40];
+    private _cooldown:number = 150000;
+
+    private _applyAura:abilityList = abilityList.WAR_CRUSADERS_COURAGE_AURA;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.BUFFS;
+        this.name = `CrusadersCourage ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0,
+            manaCost: this._manaCost[rank],
+        }
+
+        this.ignoreAura = false;
+        this.applyAuraId = this._applyAura; // only for condition
+        return effect;
+    }
+
+    /**
+     * OnImpact is called when ability is casted succesfuly (Done) this is how we apply auras 
+     * @param effect - unused here
+     * @param timeElsaped - unused here
+     */
+    public onImpact():void {
+        let auraEffect:auraEffect = {
+            id: this._applyAura,
+            bonusStats: {
+                manaregen:0,
+                defense: this._bonusDefense[this.rank],
+                block:0,
+                mindamage: 0,
+                maxdamage: 0,
+                critical:0,
+                haste:0
+            },
+            hasDamageEffect: false,
+            duration: this._duration,
+            rank: this.rank
+        }
+
+        this.applyAura(auraEffect);
+    }
+}
+
+export class Bulwark extends Ability {
+    // Placeholder Values
+    private _bonusBlock:Array<number> = [0, 34, 38, 42, 46, 50];
+    private _duration:number = 9000;
+    private _manaCost:Array<number> = [0, 8, 13, 18, 23, 28];
+    private _cooldown:number = 30000;
+
+    private _applyAura:abilityList = abilityList.WAR_BULWARK_AURA_BLOCK;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.HIGH_PRIORITY;
+        this.name = `Bulwark ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0,
+            manaCost: this._manaCost[rank],
+        }
+
+        this.hasGlobal = false;
+        this.ignoreAura = false;
+        this.applyAuraId = this._applyAura; // only for condition
+        return effect;
+    }
+
+    /**
+     * OnImpact is called when ability is casted succesfuly (Done) this is how we apply auras 
+     * @param effect - unused here
+     * @param timeElsaped - unused here
+     */
+    public onImpact():void {
+        let auraEffect:auraEffect = {
+            id: this._applyAura,
+            bonusStats: {
+                manaregen:0,
+                defense:0,
+                block: this._bonusBlock[this.rank],
+                mindamage: 0,
+                maxdamage: 0,
+                critical:0,
+                haste:0
+            },
+            hasDamageEffect: false,
+            duration: this._duration,
+            rank: this.rank,
+            script: AuraScripts.WarBulwark
+        }
+
+        this.applyAura(auraEffect);
+    }
+}
+
+export class ColossalReconstruction extends Ability {
+    /** !!!! ->This ability has no effect at the current simulation  */
+    private _manaCost:Array<number> = [0, 8, 16, 24, 32, 40];
+    private _cooldown:number = 25000;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.HIGH_PRIORITY;
+        this.name = `Colossal Reconstruction ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0,
+            manaCost: this._manaCost[rank]
+        }
+
+        this.hasGlobal = false;
+        return effect;
+    }
+}
+
+export class Tempering extends Ability {
+    /** !!!! ->This ability has no effect at the current simulation  */
+    private _manaCost:Array<number> = [0, 8];
+    private _cooldown:number = 30000;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.HIGH_PRIORITY;
+        this.name = `Tempering ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0,
+            manaCost: this._manaCost[rank]
+        }
+
+        return effect;
     }
 }

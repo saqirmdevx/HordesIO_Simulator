@@ -2,7 +2,7 @@ import Stats, { statTypes } from "./stats.js";
 import Ability, { Ranks, abilityList, abilityPrior } from "./ability.js";
 import Aura from "./aura.js";
 import Main from "./main.js";
-import {  __calcHasteBonus } from "./placeholders.js";
+import {  __calcHasteBonus, __random } from "./placeholders.js";
 
 import * as MageScripts from "./scripts/mage.js";
 import * as WarriorScripts from "./scripts/warrior.js";
@@ -70,26 +70,25 @@ export default class Player {
             this._regenTime = 5000;
         }
 
-        this._activeAuras.forEach((aura:Aura, index:number) => {
-            if (!aura.isPassive)
-                aura.doUpdate(diff, timeElsaped);
+        /** Update all active auras */
+        for (let i = 0; i < this._activeAuras.length; i++) {
+            this._activeAuras[i].doUpdate(diff, timeElsaped);
 
-            if (aura.toRemove) {
-                this._activeAuras.splice(index, 1);
-                Main.vue.activeAuras.splice(index, 1);
+            if (this._activeAuras[i].toRemove) {
+                this._activeAuras.splice(i, 1);
+                Main.vue.activeAuras.splice(i, 1);
             }
-        });
+        }
 
         /** Update all abilites */
-        this._abilityList.forEach((ability:Ability) => {
-            ability.doUpdate(diff, timeElsaped);
-        });
+        for (let i = 0; i < this._abilityList.length; i++) 
+            this._abilityList[i].doUpdate(diff, timeElsaped);
 
         if (this.globalCooldown <= 0 && !this.isCasting)
-            this.doCast(diff, timeElsaped);
+            this.doCast(timeElsaped);
     }
 
-    public doCast(diff:number, timeElsaped:number):void {
+    public doCast(timeElsaped:number):void {
         for (const ability of this._abilityList) {
             if (ability.priority == abilityPrior.PASSIVE)
                 continue;
@@ -102,7 +101,10 @@ export default class Player {
                     continue;
 
             ability.cast(timeElsaped);
-            return;
+            if (ability.hasGlobal)
+                return;
+            else
+                continue;
         }
     }
 
@@ -118,6 +120,18 @@ export default class Player {
                 return new WarriorScripts.CentrifugalLaceration(abilityId, rank, this);
             case abilityList.WAR_UNHOLYWARCRY: 
                 return new WarriorScripts.UnholyWarcry(abilityId, rank, this);
+            case abilityList.WAR_ARMOR_REINFORCEMENT: 
+                return new WarriorScripts.ArmorReinforcement(abilityId, rank, this);
+            case abilityList.WAR_TAUNT: 
+                return new WarriorScripts.Taunt(abilityId, rank, this);
+            case abilityList.WAR_CHARGE: 
+                return new WarriorScripts.Charge(abilityId, rank, this);
+            case abilityList.WAR_CRUSADERS_COURAGE: 
+                return new WarriorScripts.CrusadersCourage(abilityId, rank, this);
+            case abilityList.WAR_COLOSSAL_RECONSTRUCTION:
+                return new WarriorScripts.ColossalReconstruction(abilityId, rank, this);
+            case abilityList.WAR_BULWARK:
+                return new WarriorScripts.Bulwark(abilityId, rank, this);
             /*** Mage Abilites */    
             case abilityList.MAGE_ICEBOLT: 
                 return new MageScripts.IceBolt(abilityId, rank, this);
@@ -162,9 +176,9 @@ export default class Player {
         let mindamage:number = this.baseStats.mindamage + this.bonusStats.mindamage;
         let maxdamage:number = this.baseStats.maxdamage + this.bonusStats.maxdamage;
 
-        let formular:number = Math.floor(baseDamage + (Math.random() * (maxdamage - mindamage) + maxdamage) * bonusDamage / 100);
+        let formular:number = Math.floor(baseDamage + __random(mindamage, maxdamage) * bonusDamage / 100);
         if (isAura)
-            formular = Math.floor(baseDamage + ((mindamage + maxdamage) / 2) * bonusDamage / 100);
+            formular = Math.floor(baseDamage + (mindamage + maxdamage) / 2 * bonusDamage / 100);
 
         formular = modifier > 0 ? formular * modifier : formular;
     

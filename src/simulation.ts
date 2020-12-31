@@ -7,11 +7,9 @@ export default class Simulation {
 
     public static startTime:number;
 
-    public static async start(simulators:number):Promise<void> {
+    public static start(simulators:number):void {
         if (this._isActive)
             return;
-
-        this.startTime = Date.now();
 
         this._isActive = true;
         Main.vue.loading = true;
@@ -31,19 +29,15 @@ export default class Simulation {
             for (let i = 0; i < simulators; i++)
                 this.playerList[i] = new Player(i);
 
-        let timeElsaped = await this._result();
-        this._done(timeElsaped);
-    }
-    private static async _result():Promise<number> {
-        return new Promise(async (resolve:any, reject:any) => { 
-            // Locked timestep
-            let chunk:number = 300;
-            let updateTime:number = 100;
-            let timeElsaped:number = 0;
+        this.startTime = Date.now();
 
-            this._simulation(updateTime, timeElsaped, chunk, (resultTime:number) => {
-                resolve(resultTime);
-            });
+        // Locked timestep
+        let chunk:number = 100;
+        let updateTime:number = 100;
+        let timeElsaped:number = 0;
+
+        this._simulation(updateTime, timeElsaped, chunk, (resultTime:number) => {
+            this._done(resultTime);
         });
     }
 
@@ -52,9 +46,11 @@ export default class Simulation {
         while (itr < chunk)
         {
             itr++;
-            this.playerList.forEach((player) => {
+            /**this.playerList.forEach((player) => {
                 player.doUpdate(updateTime, timeElsaped);
-            });
+            });**/
+            for (let i = 0; i < this.playerList.length; i++)
+                this.playerList[i].doUpdate(updateTime, timeElsaped);
 
             timeElsaped += updateTime;
             if (timeElsaped >= 300000) {
@@ -63,7 +59,7 @@ export default class Simulation {
             }
         }
 
-        setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk, callback) }, 0);
+        setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk+100, callback) }, 0);
     }
 
     private static _done(timeElsaped:number):void {

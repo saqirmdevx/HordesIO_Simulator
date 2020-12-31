@@ -37,11 +37,39 @@
                         <output>0</output>
                     </div>
                     <div class="ability">
+                        Unholy Warcry: <br/> <input class="ability-input" type="range" name="unholyWarcry" min="0" max="4" value="0" data-id="2" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
                         Centrifugal Laceration: <br/> <input class="ability-input" type="range" name="centrifugalLaceration" min="0" max="5" value="0" data-id="3" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                     <div class="ability">
-                        Unholy Warcry: <br/> <input class="ability-input" type="range" name="unholyWarcry" min="0" max="4" value="0" data-id="2" @input="updateSkillPoints($event)"/>
+                        Armor Reinforcement: <br/> <input class="ability-input" type="range" name="armorReinforcement" min="0" max="5" value="0" data-id="4" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Taunt: <br/> <input class="ability-input" type="range" name="taunt" min="0" max="5" value="0" data-id="5" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Charge: <br/> <input class="ability-input" type="range" name="charge" min="0" max="1" value="0" data-id="6" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Crusader's courage: <br/> <input class="ability-input" type="range" name="crusadersCourage" min="0" max="5" value="0" data-id="7" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Bulwark: <br/> <input class="ability-input" type="range" name="bulwark" min="0" max="5" value="0" data-id="8" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Colossal Reconstruction: <br/> <input class="ability-input" type="range" name="colossalReconstruction" min="0" max="5" value="0" data-id="9" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Tempering: <br/> <input class="ability-input" type="range" name="tempering" min="0" max="1" value="0" data-id="10" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                 </div>
@@ -71,7 +99,7 @@
         </div>
 
         <div class="center-div"> 
-            Simulators: <input class="ability-input" type="number" v-model.number="simulators"/> Targets: <input class="ability-input" type="number" v-model.number="targets"/><br />
+            Simulators: <input style="width: 84px" type="number" v-model.number="simulators"/> Targets: <input  style="width: 48px" type="number" v-model.number="targets"/><br />
             <button class="button-sim" @click="startSimulation()">Start simulation</button>
             Debug Text: <input type="checkbox" v-model.boolean="debugText" />
         </div>

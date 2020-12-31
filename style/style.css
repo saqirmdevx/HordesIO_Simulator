@@ -12,7 +12,7 @@ body {
 }
 
 .ability-input {
-    width: 78px;
+    width: 80%;
     margin-left: 3px;
 }
 
@@ -58,14 +58,19 @@ body {
 .ability-bar {
     display: flex;
     flex-wrap: wrap;
+
+    justify-content: flex-start;
 }
 
 .ability-bar .ability {
-    flex: 1 0 19%; /* explanation below */
+    flex: 0 0 14%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
     text-align: center;
-
     margin-top: 12px;
     margin-bottom: 6px;
+    margin-left: 14px;
 }
 
 .class {

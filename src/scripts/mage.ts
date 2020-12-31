@@ -30,7 +30,6 @@ export class ChillingRadiance extends Ability {
             bonusDamage: 0,
             cooldown: this._cooldown,
             castTime: 0,
-            hasGlobal: true,
             manaCost: this._manaCost[rank]
         }
         this.ignoreAura = false;
@@ -107,7 +106,6 @@ export class IceBolt extends Ability {
             bonusDamage: this._bonusdamage[rank],
             cooldown: 0,
             castTime: castTime,
-            hasGlobal: true,
             manaCost: this._manaCost[rank]
         }
 
@@ -182,7 +180,6 @@ export class IcicleOrb extends Ability {
             bonusDamage: this._bonusdamage[rank],
             cooldown: this._cooldown,
             castTime: this._castTime,
-            hasGlobal: true,
             manaCost: this._manaCost[rank]
         }
 
@@ -229,7 +226,6 @@ export class Enchant extends Ability {
             bonusDamage: 0,
             cooldown: 0,
             castTime: this._castTime,
-            hasGlobal: true,
             manaCost: this._manaCost[rank],
         }
 

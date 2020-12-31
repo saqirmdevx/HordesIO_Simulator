@@ -2,7 +2,7 @@ import Player from "./player.js";
 import Main from "./main.js";
 import Aura, { auraEffect } from "./aura.js";
 
-import { Placeholders, __calcHasteBonus } from "./placeholders.js";
+import { Placeholders, __calcHasteBonus, __random } from "./placeholders.js";
 
 export enum abilityList {
     WAR_SLASH = 0,
@@ -13,6 +13,22 @@ export enum abilityList {
     WAR_CENTRIFUGAL_LACERATION = 3,
     WAR_CENTRIFUGAL_LACERATION_AURA = 1002,
 
+    WAR_ARMOR_REINFORCEMENT = 4,
+    WAR_ARMOR_REINFORCEMENT_AURA = 2006,
+
+    WAR_TAUNT = 5,
+    WAR_CHARGE = 6,
+    WAR_CRUSADERS_COURAGE = 7,
+    WAR_CRUSADERS_COURAGE_AURA = 2007,
+
+    WAR_BULWARK = 8,
+    WAR_BULWARK_AURA_BLOCK = 2008,
+    WAR_BULWARK_AURA_DAMAGE = 2009,
+
+    WAR_COLOSSAL_RECONSTRUCTION = 9,
+    WAR_TEMPERING = 10,
+
+    /*** Mage abilites */
     MAGE_ICEBOLT = 20,
     //**Icebolt auras */
     MAGE_ICEBOLT_STACK = 2001,
@@ -40,7 +56,6 @@ export interface spellEffect {
     bonusDamage: number,
     cooldown:number,
     castTime:number,
-    hasGlobal:boolean,
     manaCost:number,
     canCrit?:boolean
 }
@@ -55,6 +70,7 @@ export default abstract class Ability {
 
     public cooldown:number = 0;
     public castTime:number = 0;
+    public hasGlobal:boolean = true;
 
     public isAoe:boolean = false;
     public maxTargets:number = 20;
@@ -80,7 +96,7 @@ export default abstract class Ability {
         if (!effect)
             return;
 
-        if (effect.hasGlobal)
+        if (this.hasGlobal)
             this.owner.globalCooldown = Placeholders.GLOBAL_COOLDOWN;
 
         if (this.owner.id == 0 && Main.vue.debugText)
@@ -101,11 +117,8 @@ export default abstract class Ability {
         if (!effect)
             return;
 
-        if (effect.cooldown)
+        if (effect.cooldown > 0)
             this.cooldown = __calcHasteBonus(effect.cooldown, this.owner.baseStats.haste + this.owner.bonusStats.haste);
-
-        if (effect.manaCost > 0)
-            this.owner.mana = 0;
 
         if (this.owner.id == 0 && Main.vue.debugText)
             Main.addCombatLog(` cast done: [${this.name}]`, timeElsaped);
@@ -124,7 +137,7 @@ export default abstract class Ability {
         if (this.castTime > 0)
             this.castTime -= diff;
         
-        if (this.owner.isCasting && this.castTime <= 0 && this._storeEffect)
+        if (this.owner.isCasting && this.castTime <= 0)
             this._done(this._storeEffect, timeElsaped);
     }
 
@@ -138,7 +151,7 @@ export default abstract class Ability {
         if (this.isAoe) {
             let targets:number = Main.vue.targets > this.maxTargets ? this.maxTargets : Main.vue.targets;
             for (let i = 0; i < targets; i++) {
-                if (Math.random() * 100 < critChance)
+                if (__random(0, 100) < critChance)
                     modifier *= this.onCrit();
 
                 this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
@@ -146,10 +159,14 @@ export default abstract class Ability {
             return;
         }
 
-        if (Math.random() * 100 < critChance)
+        if (__random(0, 100) < critChance)
             modifier *= this.onCrit();
     
         this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
+    }
+
+    public resetCooldown():void {
+        this.cooldown = 0;
     }
 
     /*** Hooks */

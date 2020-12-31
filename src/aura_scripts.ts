@@ -1,5 +1,7 @@
 import Aura, { auraEffect } from "./aura.js";
 import Player from "./player.js";
+import { abilityList } from "./ability.js";
+import main from "./main.js";
 
 export class MageIceboltInstant extends Aura {
     constructor(effect:auraEffect, owner:Player) {
@@ -16,5 +18,58 @@ export class MageIceboltInstant extends Aura {
     public removeStack():void {
         if (this._stacks > 0)
             this._stacks -= 1;
+    }
+}
+
+export class WarBulwark extends Aura {
+    private _bonusDamage:Array<number> = [0, 0.04, 0.06, 0.08, 0.1, 0.12];
+    private _duration:number = 8000;
+
+    private _applyAura:abilityList = abilityList.WAR_BULWARK_AURA_DAMAGE;
+
+    constructor(effect:auraEffect, owner:Player) {
+        super(effect, owner);
+    }
+
+    // Apply interval
+    private _applyInterval = 1000; // We simulate attack speed of enemies + targets 
+    public doUpdate(diff:number, timeElsaped:number) {
+        this._applyInterval -= diff
+        if (this._applyInterval <= 0) {
+            this._applyInterval = 1000;
+
+            let bonusDamageMin:number = (this.owner.baseStats.mindamage + this.owner.bonusStats.maxdamage) * this._bonusDamage[this.rank];
+            let bonusDamageMax:number = (this.owner.baseStats.maxdamage + this.owner.bonusStats.mindamage) * this._bonusDamage[this.rank];
+            
+
+            let bulwarkDamageAura:Aura|undefined = this.owner.getAuraById(this._applyAura);
+            if (bulwarkDamageAura) {
+                bonusDamageMin = (this.owner.baseStats.mindamage + (this.owner.bonusStats.mindamage - bulwarkDamageAura.bonusStats.mindamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
+                bonusDamageMax = (this.owner.baseStats.maxdamage + (this.owner.bonusStats.maxdamage - bulwarkDamageAura.bonusStats.maxdamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
+            }
+    
+            // apply Damage stack buff 
+            let auraEffect:auraEffect = {
+                id: this._applyAura,
+                bonusStats: {
+                    manaregen:0,
+                    defense:0,
+                    block: 0,
+                    mindamage: bonusDamageMin,
+                    maxdamage: bonusDamageMax,
+                    critical:0,
+                    haste:0
+                },
+                hasDamageEffect: false,
+                duration: this._duration,
+                rank: this.rank,
+                isStackable: true,
+                maxStacks: 8,
+                applyStacks: main.vue.targets
+            }
+            this.applyAura(auraEffect);
+        }
+
+        super.doUpdate(diff, timeElsaped);
     }
 }
