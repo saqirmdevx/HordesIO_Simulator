@@ -23,10 +23,10 @@ export class Slash extends Ability {
             baseDamage: this._baseDamage,
             bonusDamage: this._bonusdamage[rank],
             cooldown: 0,
-            castTime: 0,
-            manaCost: this._manaCost[rank]
+            castTime: 0
         }
 
+        this.manaCost = this._manaCost[rank];
         return effect;
     }
 }
@@ -55,8 +55,9 @@ export class CrescentSwipe extends Ability {
             bonusDamage: this._bonusdamage[rank],
             cooldown: this._cooldown,
             castTime: 0,
-            manaCost: this._manaCost[rank],
         }
+
+        this.manaCost = this._manaCost[rank];
         return effect;
     }
 
@@ -157,9 +158,9 @@ export class UnholyWarcry extends Ability {
             bonusDamage: 0,
             cooldown: this._cooldown,
             castTime: 0,
-            manaCost: this._manaCost[rank],
         }
 
+        this.manaCost = this._manaCost[rank];
         this.ignoreAura = false;
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
@@ -209,9 +210,9 @@ export class Taunt extends Ability {
             bonusDamage: 0,
             cooldown: this._cooldown,
             castTime: 0,
-            manaCost: this._manaCost[rank]
         }
 
+        this.manaCost = this._manaCost[rank];
         return effect;
     }
 }
@@ -233,10 +234,10 @@ export class Charge extends Ability {
             baseDamage: 0,
             bonusDamage: 0,
             cooldown: this._cooldown,
-            castTime: 0,
-            manaCost: this._manaCost[rank]
+            castTime: 0
         }
 
+        this.manaCost = this._manaCost[rank];
         return effect;
     }
 }
@@ -262,10 +263,10 @@ export class CrusadersCourage extends Ability {
             baseDamage: 0,
             bonusDamage: 0,
             cooldown: this._cooldown,
-            castTime: 0,
-            manaCost: this._manaCost[rank],
+            castTime: 0
         }
 
+        this.manaCost = this._manaCost[rank];
         this.ignoreAura = false;
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
@@ -318,10 +319,10 @@ export class Bulwark extends Ability {
             baseDamage: 0,
             bonusDamage: 0,
             cooldown: this._cooldown,
-            castTime: 0,
-            manaCost: this._manaCost[rank],
+            castTime: 0
         }
 
+        this.manaCost = this._manaCost[rank];
         this.hasGlobal = false;
         this.ignoreAura = false;
         this.applyAuraId = this._applyAura; // only for condition
@@ -372,10 +373,10 @@ export class ColossalReconstruction extends Ability {
             baseDamage: 0,
             bonusDamage: 0,
             cooldown: this._cooldown,
-            castTime: 0,
-            manaCost: this._manaCost[rank]
+            castTime: 0
         }
 
+        this.manaCost = this._manaCost[rank];
         this.hasGlobal = false;
         return effect;
     }
@@ -398,10 +399,10 @@ export class Tempering extends Ability {
             baseDamage: 0,
             bonusDamage: 0,
             cooldown: this._cooldown,
-            castTime: 0,
-            manaCost: this._manaCost[rank]
+            castTime: 0
         }
 
+        this.manaCost = this._manaCost[rank];
         return effect;
     }
 }

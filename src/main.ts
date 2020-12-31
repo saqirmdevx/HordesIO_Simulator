@@ -89,8 +89,7 @@ class Main {
 
     /**
      * update SkillPoints calculator
-     * @param output - Element with output data
-     * @param id - Ability ID
+     * @param ability - Ability ID
      */
     public updateSkillPoint(ability:any):void {
         if (!ability.target)

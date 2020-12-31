@@ -30,8 +30,9 @@ export class ChillingRadiance extends Ability {
             bonusDamage: 0,
             cooldown: this._cooldown,
             castTime: 0,
-            manaCost: this._manaCost[rank]
         }
+
+        this.manaCost = this._manaCost[rank];
         this.ignoreAura = false;
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
@@ -105,10 +106,10 @@ export class IceBolt extends Ability {
             baseDamage: this._baseDamage,
             bonusDamage: this._bonusdamage[rank],
             cooldown: 0,
-            castTime: castTime,
-            manaCost: this._manaCost[rank]
+            castTime: castTime
         }
 
+        this.manaCost = this._manaCost[rank];   
         return effect;
     }
 
@@ -179,10 +180,10 @@ export class IcicleOrb extends Ability {
             baseDamage: this._baseDamage,
             bonusDamage: this._bonusdamage[rank],
             cooldown: this._cooldown,
-            castTime: this._castTime,
-            manaCost: this._manaCost[rank]
+            castTime: this._castTime
         }
 
+        this.manaCost = this._manaCost[rank];
         return effect;
     }
 
@@ -225,10 +226,10 @@ export class Enchant extends Ability {
             baseDamage: 0,
             bonusDamage: 0,
             cooldown: 0,
-            castTime: this._castTime,
-            manaCost: this._manaCost[rank],
+            castTime: this._castTime
         }
 
+        this.manaCost = this._manaCost[rank];
         this.ignoreAura = false;
         this.applyAuraId = this._applyAura; // only for condition
         return effect;

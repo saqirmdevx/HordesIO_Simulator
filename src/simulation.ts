@@ -32,7 +32,7 @@ export default class Simulation {
         this.startTime = Date.now();
 
         // Locked timestep
-        let chunk:number = 100;
+        let chunk:number = 1;
         let updateTime:number = 100;
         let timeElsaped:number = 0;
 
@@ -57,7 +57,7 @@ export default class Simulation {
         }
 
         this._updateDamage(timeElsaped);
-        setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk+100, callback) }, 0);
+        setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk+0, callback) }, 50);
     }
 
     private static _done(timeElsaped:number):void {

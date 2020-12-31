@@ -41,6 +41,10 @@ export enum abilityList {
 
     MAGE_ENCHANT = 23,
     MAGE_ENCHANT_AURA = 2005,
+
+    /** default abilites */
+    DEFAULT_POTION = 5001,
+    DEFAULT_POTION_AURA = 5002,
 }
 
 export enum abilityPrior {
@@ -56,7 +60,6 @@ export interface spellEffect {
     bonusDamage: number,
     cooldown:number,
     castTime:number,
-    manaCost:number,
     canCrit?:boolean
 }
 
@@ -69,7 +72,6 @@ export default abstract class Ability {
     public name:string = "undefined"; // Ability Name just for debuging
 
     public cooldown:number = 0;
-    public castTime:number = 0;
     public hasGlobal:boolean = true;
 
     public isAoe:boolean = false;
@@ -77,6 +79,8 @@ export default abstract class Ability {
 
     public applyAuraId:number = 0;
     public ignoreAura:boolean = false;
+
+    public manaCost:number = 0;
 
     private _storeEffect: spellEffect|undefined;
 
@@ -104,8 +108,7 @@ export default abstract class Ability {
                 Main.addCombatLog(` cast: [${this.name}]`, timeElsaped);
         
         if (effect.castTime > 0) {
-            this.castTime = __calcHasteBonus(effect.castTime, this.owner.baseStats.haste + this.owner.bonusStats.haste); // add haste formular
-            this.owner.isCasting = true;
+            this.owner.castTime = __calcHasteBonus(effect.castTime, this.owner.baseStats.haste + this.owner.bonusStats.haste); // add haste formular
             this._storeEffect = effect;
             return;
         }
@@ -123,21 +126,19 @@ export default abstract class Ability {
         if (this.owner.id == 0 && Main.vue.debugText)
             Main.addCombatLog(` cast done: [${this.name}]`, timeElsaped);
 
+        if (this.manaCost)
+            this.owner.mana -= this.manaCost;
+
         this.onImpact(effect, timeElsaped);
 
         this._storeEffect = undefined;
-
-        this.owner.isCasting = false;
     }
 
     public doUpdate(diff:number, timeElsaped:number):void {
         if (this.cooldown > 0)
             this.cooldown -= diff;
         
-        if (this.castTime > 0)
-            this.castTime -= diff;
-        
-        if (this.owner.isCasting && this.castTime <= 0)
+        if (this.owner.castTime <= 0 && this._storeEffect)
             this._done(this._storeEffect, timeElsaped);
     }
 
@@ -167,6 +168,11 @@ export default abstract class Ability {
 
     public resetCooldown():void {
         this.cooldown = 0;
+    }
+
+    /** for customScripts if condition is passed it can cast */
+    public castCondition():boolean {
+        return true;
     }
 
     /*** Hooks */
@@ -223,7 +229,9 @@ export class Ranks {
 
     public static spentPoints():number {
         let spentPoints:number = 0;
-        this.list.forEach((ranks) => {
+        this.list.forEach((ranks:number, index:number) => {
+            // exclude default abilites
+            if (index > 5000) return;
             spentPoints += Number(ranks);
         });
 

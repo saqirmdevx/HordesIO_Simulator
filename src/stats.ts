@@ -41,6 +41,9 @@ export default class Stats {
 
     /** ???? Need better solution */
     private static _state(stat:any, set?:number): number {
+        if (stat === "mana") {
+            this.mana = set ? set : 0
+        }
         if (!this.type[stat])
             return 0;
         

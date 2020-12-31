@@ -49,10 +49,9 @@ export class WarBulwark extends Aura {
                 if (__random(0,100) < (this.owner.baseStats.block + this.owner.bonusStats.block))
                     applyStacks++;
 
-            if (applyStacks) {
+            if (applyStacks > 0) {
                 let bonusDamageMin:number = (this.owner.baseStats.mindamage + this.owner.bonusStats.maxdamage) * this._bonusDamage[this.rank];
                 let bonusDamageMax:number = (this.owner.baseStats.maxdamage + this.owner.bonusStats.mindamage) * this._bonusDamage[this.rank];
-                
 
                 let bulwarkDamageAura:Aura|undefined = this.owner.getAuraById(this._applyAura);
                 if (bulwarkDamageAura) {
@@ -82,5 +81,24 @@ export class WarBulwark extends Aura {
                 this.applyAura(auraEffect);
             }
         }
+    }
+}
+
+export class ManaPotion extends Aura {
+    private _manaRegen:Array<number> = [0, 100, 200, 300];
+
+    constructor(effect:auraEffect, owner:Player) {
+        super(effect, owner);
+    }
+
+    private _tickTime:number = 500;
+    public doUpdate(diff:number, timeElsaped:number):void {
+        this._tickTime -= diff;
+        if (this._tickTime <= 0) {
+            this.owner.regenMana(this._manaRegen[this.rank] / 30);
+            this._tickTime = 500;
+        }
+
+        super.doUpdate(diff, timeElsaped);
     }
 }

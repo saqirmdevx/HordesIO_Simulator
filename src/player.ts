@@ -6,6 +6,7 @@ import {  __calcHasteBonus, __random } from "./placeholders.js";
 
 import * as MageScripts from "./scripts/mage.js";
 import * as WarriorScripts from "./scripts/warrior.js";
+import * as DefaultScripts from "./scripts/default.js";
 
 export default class Player {
     public baseStats:statTypes;
@@ -19,7 +20,8 @@ export default class Player {
         haste: 0 
     };
 
-    public mana: number = Stats.mana;
+    public mana:number = Stats.mana;
+    public maxMana:number = Stats.mana;
 
     public id:number;
 
@@ -27,7 +29,7 @@ export default class Player {
 
     // conditions
     public globalCooldown:number = 0;
-    public isCasting:boolean = false;
+    public castTime:number = 0;
 
     public _activeAuras:Array<Aura> = [];
     private _abilityList:Array<Ability> = [];
@@ -64,9 +66,14 @@ export default class Player {
         if (this.globalCooldown > 0)
             this.globalCooldown -= diff;
 
+        if (this.castTime > 0)
+            this.castTime -= diff;
+
         this._regenTime -= diff;
         if (this._regenTime < 0) {
-            this.mana += this.baseStats.manaregen + this.bonusStats.manaregen;
+            if (this.getManaPercentage() < 100)
+                this.regenMana(this.baseStats.manaregen + this.bonusStats.manaregen);
+
             this._regenTime = 5000;
         }
 
@@ -84,7 +91,7 @@ export default class Player {
         for (let i = 0; i < this._abilityList.length; i++) 
             this._abilityList[i].doUpdate(diff, timeElsaped);
 
-        if (this.globalCooldown <= 0 && !this.isCasting)
+        if (this.globalCooldown <= 0 && !this.isCasting())
             this.doCast(timeElsaped);
     }
 
@@ -93,12 +100,18 @@ export default class Player {
             if (ability.priority == abilityPrior.PASSIVE)
                 continue;
 
+            if (ability.manaCost > this.mana)
+                continue;
+
             if (ability.cooldown > 0)
                 continue;
 
             if (ability.applyAuraId && !ability.ignoreAura)
                 if (this.hasAura(ability.applyAuraId))
                     continue;
+
+            if (!ability.castCondition())
+                continue;
 
             ability.cast(timeElsaped);
             if (ability.hasGlobal)
@@ -141,6 +154,10 @@ export default class Player {
                 return new MageScripts.ChillingRadiance(abilityId, rank, this);
             case abilityList.MAGE_ENCHANT: 
                 return new MageScripts.Enchant(abilityId, rank, this);
+
+            /** Default */
+            case abilityList.DEFAULT_POTION: 
+                return new DefaultScripts.ManaPotion(abilityId, rank, this);
             default:
                 return undefined;
         }
@@ -165,6 +182,14 @@ export default class Player {
         let found = this._activeAuras.find((aura:Aura) => aura.id == auraId as number);
         return found ? found : undefined;
     }
+
+    public isCasting():boolean {
+        return this.castTime > 0;
+    }
+
+    public getManaPercentage():number {
+        return Math.floor(this.mana / this.maxMana * 100);
+    }
     
     //*** Player damage function */
     /**
@@ -186,5 +211,11 @@ export default class Player {
 
         if (this.id == 0 && Main.vue.debugText)
             Main.addCombatLog(`Damage Done: ${formular} modifier: ${modifier}`, timeElsaped);
+    }
+
+    public regenMana(mana:number):void {
+        this.mana += mana;
+        if (this.mana > this.maxMana)
+            this.mana = this.maxMana;
     }
 }
