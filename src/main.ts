@@ -10,6 +10,7 @@ interface VueData  {
     skillPoints: number,
     simulators: number,
     targets: number,
+    mitigation: number,
     combatLog: string,
     debugText: boolean,
     damage: { 
@@ -38,6 +39,7 @@ class Main {
                 skillPoints: 0,
                 simulators: 1,
                 targets: 1,
+                mitigation: 0,
                 combatLog: "",
                 debugText: true,
                 damage: { 

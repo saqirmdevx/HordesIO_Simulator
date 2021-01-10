@@ -13,11 +13,11 @@ export default class Stats {
     public static type:statTypes = {
         manaregen: 10,
         defense: 500,
-        block: 20,
+        block: 0.15,
         mindamage: 100,
         maxdamage: 150,
-        critical: 15,
-        haste: 15
+        critical: 0.15,
+        haste: 0.15
     }
 
     public static mana:number = 300;
@@ -27,28 +27,25 @@ export default class Stats {
      * @param type - Stat Type
      * @param value - Value of stat
      */
-    public static set(type:any, value:number):number {
-        return this._state(type, value);
+    public static set(type:string, value:number):void {
+        this._state(type, value);
     }
 
     /**
      * return a value of stat
      * @param type - Stat Type
      */
-    public static get(type:any):number {
+    public static get(type:string):number {
         return this._state(type);
     }
 
     /** ???? Need better solution */
-    private static _state(stat:any, set?:number): number {
-        if (stat === "mana") {
-            this.mana = set ? set : 0
-        }
-        if (!this.type[stat])
-            return 0;
-        
-        if (set)
-            this.type[stat] = set;
-        return this.type[stat];
+    private static _state(stat:string, set:number = 0): number {
+        if (stat === "mana") 
+            return this.mana = set;
+
+        if (stat in this.type)
+            return this.type[stat] = set;
+        return 0;
     }
 }

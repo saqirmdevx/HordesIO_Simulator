@@ -300,7 +300,7 @@ export class CrusadersCourage extends Ability {
 
 export class Bulwark extends Ability {
     // Placeholder Values
-    private _bonusBlock:Array<number> = [0, 34, 38, 42, 46, 50];
+    private _bonusBlock:Array<number> = [0, 0.34, 0.38, 0.42, 0.46, 0.50];
     private _duration:number = 9000;
     private _manaCost:Array<number> = [0, 8, 13, 18, 23, 28];
     private _cooldown:number = 30000;

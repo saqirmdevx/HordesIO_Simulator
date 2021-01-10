@@ -14,16 +14,16 @@ export enum abilityList {
     WAR_CENTRIFUGAL_LACERATION_AURA = 1002,
 
     WAR_ARMOR_REINFORCEMENT = 4,
-    WAR_ARMOR_REINFORCEMENT_AURA = 2006,
+    WAR_ARMOR_REINFORCEMENT_AURA = 1003,
 
     WAR_TAUNT = 5,
     WAR_CHARGE = 6,
     WAR_CRUSADERS_COURAGE = 7,
-    WAR_CRUSADERS_COURAGE_AURA = 2007,
+    WAR_CRUSADERS_COURAGE_AURA = 1004,
 
     WAR_BULWARK = 8,
-    WAR_BULWARK_AURA_BLOCK = 2008,
-    WAR_BULWARK_AURA_DAMAGE = 2009,
+    WAR_BULWARK_AURA_BLOCK = 1005,
+    WAR_BULWARK_AURA_DAMAGE = 1006,
 
     WAR_COLOSSAL_RECONSTRUCTION = 9,
     WAR_TEMPERING = 10,
@@ -41,6 +41,17 @@ export enum abilityList {
 
     MAGE_ENCHANT = 23,
     MAGE_ENCHANT_AURA = 2005,
+
+    MAGE_ARCTIC_AURA = 24,
+    MAGE_ARCTIC_AURA_AURA = 2006,
+
+    MAGE_HYPOTHERMIC_FRENZY = 25,
+    MAGE_HYPOTHERMIC_FRENZY_AURA = 2007,
+
+    MAGE_ICE_SHIELD = 26,
+    MAGE_ICE_SHIELD_AURA = 2008, //Unused
+
+    MAGE_TELEPORT = 27,
 
     /** default abilites */
     DEFAULT_POTION = 5001,
@@ -82,7 +93,7 @@ export default abstract class Ability {
 
     public manaCost:number = 0;
 
-    private _storeEffect: spellEffect|undefined;
+    private _storeEffect: spellEffect|null = null;
 
     // Default
     public priority:abilityPrior = abilityPrior.LOW_PRIORITY;
@@ -131,7 +142,7 @@ export default abstract class Ability {
 
         this.onImpact(effect, timeElsaped);
 
-        this._storeEffect = undefined;
+        this._storeEffect = null;
     }
 
     public doUpdate(diff:number, timeElsaped:number):void {
@@ -152,7 +163,7 @@ export default abstract class Ability {
         if (this.isAoe) {
             let targets:number = Main.vue.targets > this.maxTargets ? this.maxTargets : Main.vue.targets;
             for (let i = 0; i < targets; i++) {
-                if (__random(0, 100) < critChance)
+                if (Math.random() < critChance)
                     modifier *= this.onCrit();
 
                 this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
@@ -160,7 +171,7 @@ export default abstract class Ability {
             return;
         }
 
-        if (__random(0, 100) < critChance)
+        if (Math.random() < critChance)
             modifier *= this.onCrit();
     
         this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
@@ -168,6 +179,10 @@ export default abstract class Ability {
 
     public resetCooldown():void {
         this.cooldown = 0;
+    }
+
+    public reduceCoolown(time:number):void {
+        this.cooldown -= time;
     }
 
     /** for customScripts if condition is passed it can cast */

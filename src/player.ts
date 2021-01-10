@@ -154,7 +154,14 @@ export default class Player {
                 return new MageScripts.ChillingRadiance(abilityId, rank, this);
             case abilityList.MAGE_ENCHANT: 
                 return new MageScripts.Enchant(abilityId, rank, this);
-
+            case abilityList.MAGE_ARCTIC_AURA:
+                return new MageScripts.ArcticAura(abilityId, rank, this);
+            case abilityList.MAGE_HYPOTHERMIC_FRENZY:
+                return new MageScripts.HypothermicFrenzy(abilityId, rank, this);
+            case abilityList.MAGE_ICE_SHIELD:
+                return new MageScripts.IceShield(abilityId, rank, this);
+            case abilityList.MAGE_TELEPORT:
+                return new MageScripts.Teleport(abilityId, rank, this);
             /** Default */
             case abilityList.DEFAULT_POTION: 
                 return new DefaultScripts.ManaPotion(abilityId, rank, this);
@@ -167,8 +174,12 @@ export default class Player {
         return this._abilityList.find((ability:Ability) => ability.id == id);
     }
 
+    public hasAbility(id:abilityList):Boolean {
+        return this._abilityList.some((ability:Ability) => ability.id == id);
+    }
+
     /*** Aura functions ***/
-    public hasAura(auraId:number):boolean {
+    public hasAura(auraId:abilityList):boolean {
         if (this._activeAuras.some((aura:Aura) => aura.id == auraId as number))
             return true;
         return false;
@@ -206,11 +217,20 @@ export default class Player {
             formular = Math.floor(baseDamage + (mindamage + maxdamage) / 2 * bonusDamage / 100);
 
         formular = modifier > 0 ? formular * modifier : formular;
+
+        formular = this.damageReductions(formular);
     
         this.damageDone += formular;
 
         if (this.id == 0 && Main.vue.debugText)
             Main.addCombatLog(`Damage Done: ${formular} modifier: ${modifier}`, timeElsaped);
+    }
+
+    public damageReductions(damage:number):number {
+        let reducedDamage:number = damage;
+        reducedDamage = reducedDamage * (1 - Main.vue.mitigation);
+
+        return Math.floor(reducedDamage);
     }
 
     public regenMana(mana:number):void {

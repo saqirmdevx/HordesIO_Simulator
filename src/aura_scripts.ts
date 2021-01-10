@@ -46,28 +46,22 @@ export class WarBulwark extends Aura {
 
             // count how much stack we apply (based on the block %)
             for (let i = 0; i < Main.vue.targets; i++)
-                if (__random(0,100) < (this.owner.baseStats.block + this.owner.bonusStats.block))
+                if (Math.random() < (this.owner.baseStats.block + this.owner.bonusStats.block))
                     applyStacks++;
 
             if (applyStacks > 0) {
-                let bonusDamageMin:number = (this.owner.baseStats.mindamage + this.owner.bonusStats.maxdamage) * this._bonusDamage[this.rank];
-                let bonusDamageMax:number = (this.owner.baseStats.maxdamage + this.owner.bonusStats.mindamage) * this._bonusDamage[this.rank];
-
                 let bulwarkDamageAura:Aura|undefined = this.owner.getAuraById(this._applyAura);
-                if (bulwarkDamageAura) {
-                    bonusDamageMin = (this.owner.baseStats.mindamage + (this.owner.bonusStats.mindamage - bulwarkDamageAura.bonusStats.mindamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
-                    bonusDamageMax = (this.owner.baseStats.maxdamage + (this.owner.bonusStats.maxdamage - bulwarkDamageAura.bonusStats.maxdamage)) * this._bonusDamage[this.rank] * bulwarkDamageAura.getStacks();
-                }
+                let stacks:number = bulwarkDamageAura && bulwarkDamageAura.getStacks() > 0 ? bulwarkDamageAura.getStacks() : 1;
         
                 // apply Damage stack buff 
                 let auraEffect:auraEffect = {
                     id: this._applyAura,
-                    bonusStats: {
+                    bonusStatsPercentage:  {
                         manaregen:0,
                         defense:0,
                         block: 0,
-                        mindamage: bonusDamageMin,
-                        maxdamage: bonusDamageMax,
+                        mindamage: this._bonusDamage[this.rank] * stacks, /** 0 Base damage we give only % */
+                        maxdamage: this._bonusDamage[this.rank] * stacks, /** 0 Base damage we give only % */
                         critical:0,
                         haste:0
                     },
@@ -93,12 +87,12 @@ export class ManaPotion extends Aura {
 
     private _tickTime:number = 500;
     public doUpdate(diff:number, timeElsaped:number):void {
+        super.doUpdate(diff, timeElsaped);
+
         this._tickTime -= diff;
         if (this._tickTime <= 0) {
             this.owner.regenMana(this._manaRegen[this.rank] / 30);
             this._tickTime = 500;
         }
-
-        super.doUpdate(diff, timeElsaped);
     }
 }

@@ -1,12 +1,13 @@
 import {abilityList } from "./ability.js"
 import Main from "./main.js";
-import { Placeholders, __calcHasteBonus, __random } from "./placeholders.js";
+import { Placeholders, __calcHasteBonus } from "./placeholders.js";
 import Player from "./player.js";
 import { statTypes } from "./stats.js";
 
 export interface auraEffect {
     id: abilityList,
     bonusStats?: statTypes,
+    bonusStatsPercentage?: statTypes,
     damageEffect?: auraDamageEffect,
     hasDamageEffect: boolean,
     duration: number,
@@ -98,16 +99,17 @@ export default class Aura {
             let maxTargets = damageEffect.maxTargets ? damageEffect.maxTargets : 20;
             let targets:number = Main.vue.targets > maxTargets ? maxTargets : Main.vue.targets;
             for (let i = 0; i < targets; i++) {
-                if (__random(0, 100) < critChance)
-                    modifier *= this.onCrit();
+                let tempMod = modifier;
+                if (Math.random() < critChance)
+                    tempMod *= this.onCrit();
 
-                this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped, true);
+                this.owner.dealDamage(baseDamage, bonusDamage, tempMod, timeElsaped, true);
             }
             return;
         }
 
 
-        if (__random(0, 100) < critChance)
+        if (Math.random() < critChance)
             modifier *= this.onCrit();
 
         this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped, true);
@@ -122,7 +124,7 @@ export default class Aura {
             if (this._stacks < this._maxStacks)
                 this._stacks += (effect.applyStacks ? effect.applyStacks : 1);
 
-                this.onApply(effect);
+        this.onApply(effect);
     }
 
     protected onApply(effect:auraEffect):void {
@@ -137,8 +139,6 @@ export default class Aura {
             this._stacks = this._maxStacks;
 
         if (effect.bonusStats) {
-            /*for (const stat in effect.bonusStats)
-                this.bonusStats[stat] = effect.bonusStats[stat];*/
             this.bonusStats = {
                 manaregen: effect.bonusStats.manaregen,
                 defense: effect.bonusStats.defense,
@@ -149,13 +149,24 @@ export default class Aura {
                 haste: effect.bonusStats.haste 
             }
         }
+        if (effect.bonusStatsPercentage) {
+            this.bonusStats = {
+                manaregen: this.bonusStats.manaregen + (this.owner.baseStats.manaregen + this.owner.bonusStats.manaregen) * effect.bonusStatsPercentage.manaregen,
+                defense: this.bonusStats.defense + (this.owner.baseStats.defense + this.owner.bonusStats.defense) * effect.bonusStatsPercentage.defense,
+                block: this.bonusStats.block + (this.owner.baseStats.block + this.owner.bonusStats.block) * effect.bonusStatsPercentage.block,
+                mindamage: this.bonusStats.mindamage + (this.owner.baseStats.mindamage + this.owner.bonusStats.mindamage) * effect.bonusStatsPercentage.mindamage,
+                maxdamage: this.bonusStats.maxdamage + (this.owner.baseStats.maxdamage + this.owner.bonusStats.maxdamage) * effect.bonusStatsPercentage.maxdamage,
+                critical: this.bonusStats.critical + (this.owner.baseStats.critical + this.owner.bonusStats.critical) * effect.bonusStatsPercentage.critical,
+                haste: this.bonusStats.haste + (this.owner.baseStats.haste + this.owner.bonusStats.haste) * effect.bonusStatsPercentage.haste 
+            }
+        }
 
         // update Effect
         this._effect = effect;
         this.rank = effect.rank;
 
         // update player stats
-        if (effect.bonusStats) {
+        if (effect.bonusStats || effect.bonusStatsPercentage)
             this.owner.bonusStats = {
                 manaregen: this.owner.bonusStats.manaregen + this.bonusStats.manaregen,
                 defense: this.owner.bonusStats.defense + this.bonusStats.defense,
@@ -165,14 +176,11 @@ export default class Aura {
                 critical: this.owner.bonusStats.critical + this.bonusStats.critical,
                 haste: this.owner.bonusStats.haste + this.bonusStats.haste,
             }
-            //for (const stat in effect.bonusStats)
-            //    this.owner.bonusStats[stat] += this.bonusStats[stat];
-        }
     }
 
     protected onReset():void {
         // reset bonus stats
-        if (this._effect.bonusStats) {
+        if (this._effect.bonusStats || this._effect.bonusStatsPercentage)
             this.owner.bonusStats = {
                 manaregen: this.owner.bonusStats.manaregen - this.bonusStats.manaregen,
                 defense: this.owner.bonusStats.defense - this.bonusStats.defense,
@@ -182,9 +190,6 @@ export default class Aura {
                 critical: this.owner.bonusStats.critical - this.bonusStats.critical,
                 haste: this.owner.bonusStats.haste - this.bonusStats.haste,
             }
-            // for (const stat in this._effect.bonusStats)
-            //     this.owner.bonusStats[stat] -= this.bonusStats[stat];
-        }
     }
 
     public onExpire():void {

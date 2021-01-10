@@ -32,7 +32,7 @@ export default class Simulation {
         this.startTime = Date.now();
 
         // Locked timestep
-        let chunk:number = 1;
+        let chunk:number = 50;
         let updateTime:number = 100;
         let timeElsaped:number = 0;
 
@@ -57,7 +57,7 @@ export default class Simulation {
         }
 
         this._updateDamage(timeElsaped);
-        setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk+0, callback) }, 50);
+        setTimeout(() => { this._simulation(updateTime, timeElsaped, chunk+50, callback) }, 0);
     }
 
     private static _done(timeElsaped:number):void {
@@ -106,8 +106,8 @@ export default class Simulation {
         Main.vue.dps.average = Math.floor((damage.total / this.playerList.length) / (timeElsaped / 1000));
 
         /** Update auras !move to another function later **/
-        this.playerList[0]._activeAuras.forEach((aura:any, index:number) => {
+        /*this.playerList[0]._activeAuras.forEach((aura:any, index:number) => {
             Main.vue.activeAuras[index] = {id: aura.id, duration: Math.floor(aura.duration / 1000), stacks: aura.getStacks()}
-        });
+        });*/
     }
 }

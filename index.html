@@ -16,11 +16,11 @@
             <div class="item">Mana: <input class="stat-input" type="number" name="mana" v-model="stats.mana" @blur="updateStats($event)" /> </div>
             <div class="item">Mana Regen: <input class="stat-input" type="number" name="manaregen" v-model="stats.manaregen" @blur="updateStats($event)" /> </div>
             <div class="item">Defense: <input class="stat-input" type="number" name="defense" v-model="stats.defense" @blur="updateStats($event)" /> </div>
-            <div class="item">Block: <input class="stat-input" type="number" step="0.1" name="block" v-model="stats.block" @blur="updateStats($event)" />% </div>
+            <div class="item">Block: <input class="stat-input" type="number" step="0.01" name="block" v-model="stats.block" @blur="updateStats($event)" /> </div>
             <div class="item">Min Damage: <input class="stat-input" type="number" name="mindamage" v-model="stats.mindamage" @blur="updateStats($event)" /> </div>
             <div class="item">Max Damage: <input class="stat-input" type="number" name="maxdamage" v-model="stats.maxdamage" @blur="updateStats($event)" /> </div>
-            <div class="item">Haste: <input class="stat-input" type="number" step="0.1" name="haste" v-model="stats.haste"  @blur="updateStats($event)" />% </div>
-            <div class="item">Critical: <input class="stat-input" type="number" step="0.1" name="critical" v-model="stats.critical" @blur="updateStats($event)" />% </div>
+            <div class="item">Haste: <input class="stat-input" type="number" step="0.01" name="haste" v-model="stats.haste"  @blur="updateStats($event)" /> </div>
+            <div class="item">Critical: <input class="stat-input" type="number" step="0.01" name="critical" v-model="stats.critical" @blur="updateStats($event)" /> </div>
         </div>
 
         <div class="abilites">
@@ -91,7 +91,23 @@
                         <output>0</output>
                     </div>
                     <div class="ability">
-                        Enchant: <br/> <input class="ability-input" type="range" name="Enchant" min="0" max="4" value="0" data-id="23" @input="updateSkillPoints($event)"/>
+                        Enchant: <br/> <input class="ability-input" type="range" name="enchant" min="0" max="4" value="0" data-id="23" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Arctic Aura: <br/> <input class="ability-input" type="range" name="arcticAura" min="0" max="4" value="0" data-id="24" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Hypothermic Frenzy: <br/> <input class="ability-input" type="range" name="hypotermicFrenzy" min="0" max="5" value="0" data-id="25" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Ice Shield: <br/> <input class="ability-input" type="range" name="iceShield" min="0" max="5" value="0" data-id="26" @input="updateSkillPoints($event)"/>
+                        <output>0</output>
+                    </div>
+                    <div class="ability">
+                        Teleport: <br/> <input class="ability-input" type="range" name="teleport" min="0" max="1" value="0" data-id="27" @input="updateSkillPoints($event)"/>
                         <output>0</output>
                     </div>
                 </div>
@@ -108,7 +124,7 @@
         </div>
 
         <div class="center-div"> 
-            Simulators: <input style="width: 84px" type="number" v-model.number="simulators"/> Targets: <input  style="width: 48px" type="number" v-model.number="targets"/><br />
+            Simulators: <input style="width: 84px" type="number" v-model.number="simulators"/> Targets: <input  style="width: 48px" type="number" v-model.number="targets"/> Damage mitigation: <input  style="width: 48px" type="number" step="0.01" v-model.number="mitigation"/><br />
             <button class="button-sim" @click="startSimulation()">Start simulation</button>
             Debug Text: <input type="checkbox" v-model.boolean="debugText" />
         </div>

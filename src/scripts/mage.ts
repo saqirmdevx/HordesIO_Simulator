@@ -139,13 +139,18 @@ export class IceBolt extends Ability {
             this.applyAura(auraEffect);
         }
 
+        let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
+
+        if (icicleOrb)
+            icicleOrb.reduceCoolown(500);
+
         if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
             let dmgMod = 1.0;
             let critMod = 0;
 
             let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
             if (chillingRadiance)
-                critMod = 1 + (3 * chillingRadiance.rank);
+                critMod = 0.01 + (0.03 * chillingRadiance.rank);
 
             if (this.owner.hasAura(this._iceboltFreeze))
                 dmgMod = 1.5; //50% damage increase when target is frozen
@@ -194,7 +199,7 @@ export class IcicleOrb extends Ability {
 
             let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
             if (chillingRadiance)
-                critMod = 2 + (3 * chillingRadiance.rank);
+                critMod = 0.02 + (0.03 * chillingRadiance.rank);
 
             if (this.owner.hasAura(this._iceboltFreeze))
                 dmgMod = 1.5; //50% damage increase when target is frozen
@@ -258,5 +263,207 @@ export class Enchant extends Ability {
         }
 
         this.applyAura(auraEffect);
+    }
+}
+
+export class ArcticAura extends Ability {
+    // Placeholder Values
+    private _bonusCritical:Array<number> = [0, 0.03, 0.06, 0.09, 0.12]; 
+    private _duration:number = 300000;
+    private _manaCost:Array<number> = [0, 15, 25, 35, 45];
+    private _cooldown:number = 120000;
+
+    private _applyAura:abilityList = abilityList.MAGE_ARCTIC_AURA_AURA;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.BUFFS;
+        this.name = `Arctic Aura ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0
+        }
+
+        this.manaCost = this._manaCost[rank];
+        this.ignoreAura = false;
+        this.applyAuraId = this._applyAura; // only for condition
+        return effect;
+    }
+
+    /**
+     * OnImpact is called when ability is casted succesfuly (Done) this is how we apply auras 
+     * @param effect - unused here
+     * @param timeElsaped - unused here
+     */
+    public onImpact():void {
+        let auraEffect:auraEffect = {
+            id: this._applyAura,
+            bonusStats: {
+                manaregen:0,
+                defense:0,
+                block:0,
+                mindamage: 0,
+                maxdamage: 0,
+                critical: this._bonusCritical[this.rank],
+                haste:0
+            },
+            hasDamageEffect: false,
+            duration: this._duration,
+            rank: this.rank
+        }
+
+        this.applyAura(auraEffect);
+    }
+}
+
+export class HypothermicFrenzy extends Ability {
+    // Placeholder Values
+    private _bonusHaste:Array<number> = [0, 0.1, 0.17, 0.24, 0.31, 0.38]; 
+    private _bonusDamage:Array<number> = [0, 0.09, 0.16, 0.22, 0.30, 0.37]; // we multiply by rank
+    private _duration:number = 12000;
+    private _cooldown:number = 45000;
+
+    private _applyAura:abilityList = abilityList.MAGE_HYPOTHERMIC_FRENZY_AURA;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.HIGH_PRIORITY;
+        this.name = `Hypothermic frenzy ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0
+        }
+
+        this.ignoreAura = false;
+        this.applyAuraId = this._applyAura; // only for condition
+        return effect;
+    }
+
+    /**
+     * OnImpact is called when ability is casted succesfuly (Done) this is how we apply auras 
+     * @param effect - unused here
+     * @param timeElsaped - unused here
+     */
+    public onImpact():void {
+        let auraEffect:auraEffect = {
+            id: this._applyAura,
+            bonusStats: {
+                manaregen:0,
+                defense:0,
+                block:0,
+                mindamage: 0,
+                maxdamage: 0,
+                critical:0,
+                haste: this._bonusHaste[this.rank]
+            },
+            bonusStatsPercentage:  {
+                manaregen:0,
+                defense:0,
+                block: 0,
+                mindamage: this._bonusDamage[this.rank], /** 0 Base damage we give only % */
+                maxdamage: this._bonusDamage[this.rank], /** 0 Base damage we give only % */
+                critical:0,
+                haste:0
+            },
+            hasDamageEffect: false,
+            duration: this._duration,
+            rank: this.rank
+        }
+
+        this.applyAura(auraEffect);
+    }
+}
+
+export class IceShield extends Ability {
+    /** !!! This ability has no effect !!! */
+    // Placeholder Values
+    //private _duration:number = 60000;
+    private _manaCost:Array<number> = [0, 5, 10, 15, 20, 25];
+    private _cooldown:number = 60000;
+
+    private _applyAura:abilityList = abilityList.MAGE_ICE_SHIELD_AURA;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.HIGH_PRIORITY;
+        this.name = `Ice Shield ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0
+        }
+
+        this.manaCost = this._manaCost[rank];
+        this.ignoreAura = true;
+        this.applyAuraId = this._applyAura; // only for condition
+        return effect;
+    }
+
+    /**
+     * OnImpact is called when ability is casted succesfuly (Done) this is how we apply auras 
+     * @param effect - unused here
+     * @param timeElsaped - unused here
+     */
+    public onImpact():void {
+        /* let auraEffect:auraEffect = {
+            id: this._applyAura,
+            bonusStats: {
+                manaregen:0,
+                defense:0,
+                block:0,
+                mindamage: 0,
+                maxdamage: 0,
+                critical: 0,
+                haste:0
+            },
+            hasDamageEffect: false,
+            duration: this._duration,
+            rank: this.rank
+        } 
+
+        this.applyAura(auraEffect); */
+    }
+}
+
+export class Teleport extends Ability {
+    /** !!! This ability has no effect !!! */
+    // Placeholder Values
+    private _manaCost:Array<number> = [0, 4];
+    private _cooldown:number = 12000;
+
+    constructor(id:number, rank:number, owner:Player) {
+        super(id, rank, owner);
+
+        this.priority = abilityPrior.MEDIUM_PRIORITY;
+        this.name = `Teleport ${rank}`;
+    }
+
+    public getEffect(rank:number):spellEffect {
+        let effect:spellEffect = {
+            baseDamage: 0,
+            bonusDamage: 0,
+            cooldown: this._cooldown,
+            castTime: 0
+        }
+
+        this.manaCost = this._manaCost[rank];
+        return effect;
     }
 }
