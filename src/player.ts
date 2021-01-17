@@ -108,14 +108,14 @@ export default class Player {
             this.castTime -= diff;
 
         if (this.hasAutoattack) {
-            if (this._autoAttackTimmer < diff)
+            if (this._autoAttackTimmer <= diff)
                 this.commitAutoattack(timeElsaped);
             else
                 this._autoAttackTimmer -= diff;
         }
 
         this._regenTime -= diff;
-        if (this._regenTime < diff) {
+        if (this._regenTime <= diff) {
             if (this.getManaPercentage() < 100)
                 this.regenerateMana(this.manaregenStat);
             this._regenTime = 5000;
@@ -199,7 +199,7 @@ export default class Player {
         if (this.isCasting)
             return;
         
-        this._autoAttackTimmer = Math.floor(__calcHasteBonus(Math.floor(10000 / (this.attackSpeedStat * 0.1)), this.hasteStat));
+        this._autoAttackTimmer = Math.round(__calcHasteBonus(1000 / this.attackSpeedStat, this.hasteStat)) * 100;
         this.dealDamage(0, 100, Math.random() > this.criticalStat ? 1 : 2, {timeElsaped: timeElsaped, name: "Auto Attack"});
     }
 

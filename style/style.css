@@ -59,7 +59,7 @@ body {
     }
   }
 
-.combat p > span {
+.combat p > .fill {
     position: absolute;
     top: 0;
     left: -0.5px;
@@ -72,7 +72,7 @@ body {
     transition: width 0.3s
 }
 
-.combat p > span:after {
+.combat p > .fill:after {
     content: "";
     position: absolute;
     top: 0; left: 0; bottom: 0; right: 0;

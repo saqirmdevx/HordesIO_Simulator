@@ -21,17 +21,17 @@
         <div class="combat">
             <p v-if="damage.lowest > 0">Lowest Total Damage: {{ damage.lowest }} </p>
             <p v-if="damage.highest > 0" class="highest">Highest Total Damage: {{ damage.highest }} </p>
-            <p v-if="damage.average > 0"><span v-bind:style="{ width: (100 / (damage.highest+damage.lowest) * damage.average) + '%' }"></span>Average Total Damage: {{ damage.average }} </p>
+            <p v-if="damage.average > 0"><span v-bind:style="{ width: (100 / (damage.highest+damage.lowest) * damage.average) + '%' }" class="fill"></span>Average Total Damage: {{ damage.average }} </p>
             <br />
             <p v-if="dps.lowest > 0">Lowest DPS: {{ dps.lowest }} </p>
             <p v-if="dps.highest > 0" class="highest">Highest DPS: {{ dps.highest }} </p>
-            <p v-if="dps.average > 0"><span v-bind:style="{ width: (100 / (dps.highest+dps.lowest) * dps.average) + '%' }"></span>Average DPS:  {{ dps.average }} </p>
+            <p v-if="dps.average > 0"><span v-bind:style="{ width: (100 / (dps.highest+dps.lowest) * dps.average) + '%' }" class="fill"></span>Average DPS:  {{ dps.average }} </p>
             <br />
             <div v-if="debug">
-                <p style="width:85%;" v-if="maxMana>0"><span v-bind:style="{width: (100 / (maxMana) * mana) + '%' }" style="background-color:lightblue"></span>Current Mana:  {{ mana }} </p>
+                <p style="width:85%;" v-if="maxMana>0"><span v-bind:style="{width: (100 / (maxMana) * mana) + '%' }" style="background-color:lightblue" class="fill"></span>Current Mana:  {{ mana }} </p>
                 <br />
                 <div v-if="activeAuras.length > 0" class="auraList"> Auras: <br />
-                    <p class="auras" v-for="aura in activeAuras" :key="aura.id"><span v-bind:style="{width: (100 / (aura.maxDuration) * aura.duration) + '%' }" style="background-color:silver"></span> {{ aura.name }}[{{ aura.stacks }}] - {{ aura.duration }}s</p>
+                    <p class="auras" v-for="aura in activeAuras" :key="aura.id"><span v-bind:style="{width: (100 / (aura.maxDuration) * aura.duration) + '%' }" style="background-color:silver" class="fill"></span> {{ aura.name }} <span v-if="aura.stacks > 1">[{{ aura.stacks }}]</span> - {{ aura.duration }}s</p>
                 </div>
             </div>
             <textarea disabled v-model="combatLog">  </textarea>

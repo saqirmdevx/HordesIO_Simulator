@@ -107,7 +107,7 @@ export default class APLData {
         }
 
         if (base === "simulators") {
-            this.simulators = Number(result > 0 && result < 1000 ? result : 1);
+            this.simulators = Number(result > 0 && result <= 10000 ? result : 1);
             return;
         }
 
@@ -117,7 +117,7 @@ export default class APLData {
         }
 
         if (base === "targets") {
-            this.targets = Number(result > 0 && result < 100 ? result : 1);
+            this.targets = Number(result > 0 && result <= 20 ? result : 1);
             return;
         }
 

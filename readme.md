@@ -23,7 +23,7 @@ slowmotion=0 # Default: 0 - Values 0 / 1 - if this is 1 (true) it will simulate 
 simulationtime=300000 # Default: 300000 - This is time to simulate in miliseconds
 
 targets=1 # Default: 1 - Values between 1 - 20 - Number of targets (All AoE abilites will always hits all targets !!! Some AoE Abilites has limited max targets)
-simulators=100 # Default: 100 - Values between 1 - 1000 - Number of simulators. Higher value will provide more precise results. !!!(More simulators can increase process time)
+simulators=100 # Default: 100 - Values between 1 - 10000 - Number of simulators. Higher value will provide more precise results. !!!(More simulators can increase process time)
 mitigation=0.0 # Default: 0 - Value between 0 - 1 - Damage reduction by % this is replace for target's defense
 ```
 
