@@ -16,7 +16,10 @@
             <input type="file" id="file" ref="aplFile" accept=".siml"
             @change="readAPLFile">
         </div>
-        <center><button class="button-sim" @click="startSimulation()">Start simulation</button></center>
+        <center>
+            <button class="button-sim" id="downloadExample" @click="downloadExample()">Download Example (Mage)</button> <br />
+            <button class="button-sim" @click="startSimulation()">Start simulation</button>
+        </center>
         <hr>
         <div class="combat">
             <p v-if="damage.lowest > 0">Lowest Total Damage: {{ damage.lowest }} </p>
