@@ -1,11 +1,11 @@
 import {abilityList } from "./ability.js"
-import Main from "./main.js";
+import Simulation from "./simulation.js";
 import { Placeholders, __calcHasteBonus } from "./placeholders.js";
-import Player from "./player.js";
-import { statTypes } from "./stats.js";
+import Player, { statTypes } from "./player.js";
 
 export interface auraEffect {
     id: abilityList,
+    name: string,
     bonusStats?: statTypes,
     bonusStatsPercentage?: statTypes,
     damageEffect?: auraDamageEffect,
@@ -29,14 +29,18 @@ export interface auraDamageEffect {
 export default class Aura {
     public id:number;
     public duration:number = 0;
+    public maxDuration:number = 0;
     public owner:Player;
     public rank:number = 1;
     protected _effect:auraEffect = {     
         id: 0,
+        name: "",
         hasDamageEffect: false,
         duration: 0,
         rank: 1
     };
+
+    public name:string;
 
     public tickTime:number = 0;
 
@@ -49,12 +53,22 @@ export default class Aura {
 
     public bonusStats:statTypes = {
         manaregen: 0,
-        defense: 0,
         block: 0,
         mindamage: 0,
         maxdamage: 0,
         critical: 0,
-        haste: 0 
+        haste: 0,
+        attackSpeed: 0
+    };
+
+    public bonusStatsPercentage:statTypes = {
+        manaregen: 0,
+        block: 0,
+        mindamage: 0,
+        maxdamage: 0,
+        critical: 0,
+        haste: 0,
+        attackSpeed: 0
     };
 
     constructor(effect:auraEffect, owner:Player) {
@@ -63,9 +77,10 @@ export default class Aura {
         this._isStackable = effect.isStackable ? effect.isStackable : false;
         this._maxStacks = effect.maxStacks ? effect.maxStacks : 1;
         this._stacks = effect.applyStacks ? effect.applyStacks : 1;
+        this.name = effect.name;
 
         if (effect.damageEffect)
-            this.tickTime = __calcHasteBonus(effect.damageEffect.tickIndex * 1000, (this.owner.baseStats.haste + this.owner.bonusStats.haste))
+            this.tickTime = __calcHasteBonus(effect.damageEffect.tickIndex * 1000, (this.owner.hasteStat))
 
         this.onApply(effect);
     }
@@ -91,28 +106,27 @@ export default class Aura {
         let baseDamage:number = damageEffect.baseDamage * this._stacks;
         let bonusDamage:number = damageEffect.bonusDamage * this._stacks;
         // resetTick timer
-        this.tickTime = __calcHasteBonus(damageEffect.tickIndex * 1000, (this.owner.baseStats.haste + this.owner.bonusStats.haste))
+        this.tickTime = __calcHasteBonus(damageEffect.tickIndex * 1000, (this.owner.hasteStat + this.owner.hasteStat))
 
-        let critChance:number = this.owner.baseStats.critical + this.owner.bonusStats.critical + critModifier;
+        let critChance:number = this.owner.criticalStat + this.owner.criticalStat + critModifier;
 
         if (damageEffect.isAoe) {
             let maxTargets = damageEffect.maxTargets ? damageEffect.maxTargets : 20;
-            let targets:number = Main.vue.targets > maxTargets ? maxTargets : Main.vue.targets;
+            let targets:number = Simulation.targets > maxTargets ? maxTargets : Simulation.targets;
             for (let i = 0; i < targets; i++) {
                 let tempMod = modifier;
                 if (Math.random() < critChance)
                     tempMod *= this.onCrit();
 
-                this.owner.dealDamage(baseDamage, bonusDamage, tempMod, timeElsaped, true);
+                this.owner.dealDamage(baseDamage, bonusDamage, tempMod, {timeElsaped: timeElsaped, name: this.name}, true);
             }
             return;
         }
 
-
         if (Math.random() < critChance)
             modifier *= this.onCrit();
 
-        this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped, true);
+        this.owner.dealDamage(baseDamage, bonusDamage, modifier, {timeElsaped: timeElsaped, name: this.name}, true);
     }
 
     /** If aura exists we apply aura and refresh uration */
@@ -130,66 +144,41 @@ export default class Aura {
     protected onApply(effect:auraEffect):void {
         // refresh duration
         this.duration = effect.duration > 0 ? effect.duration : -1;
-        if (this.duration == -1) {
+        this.maxDuration = this.duration;
+
+        if (this.duration == -1) 
             this.isPassive = true;
-        }
 
         // Stacks cant be higher than limit
         if (this._stacks > this._maxStacks)
             this._stacks = this._maxStacks;
 
-        if (effect.bonusStats) {
-            this.bonusStats = {
-                manaregen: effect.bonusStats.manaregen,
-                defense: effect.bonusStats.defense,
-                block: effect.bonusStats.block,
-                mindamage: effect.bonusStats.mindamage,
-                maxdamage: effect.bonusStats.maxdamage,
-                critical: effect.bonusStats.critical,
-                haste: effect.bonusStats.haste 
+        for (const stat in this.bonusStats) {
+            if (effect.bonusStats ) {
+                this.bonusStats[stat] = effect.bonusStats[stat];
+                this.owner.addBonusStat(stat, effect.bonusStats[stat]);
             }
-        }
-        if (effect.bonusStatsPercentage) {
-            this.bonusStats = {
-                manaregen: this.bonusStats.manaregen + (this.owner.baseStats.manaregen + this.owner.bonusStats.manaregen) * effect.bonusStatsPercentage.manaregen,
-                defense: this.bonusStats.defense + (this.owner.baseStats.defense + this.owner.bonusStats.defense) * effect.bonusStatsPercentage.defense,
-                block: this.bonusStats.block + (this.owner.baseStats.block + this.owner.bonusStats.block) * effect.bonusStatsPercentage.block,
-                mindamage: this.bonusStats.mindamage + (this.owner.baseStats.mindamage + this.owner.bonusStats.mindamage) * effect.bonusStatsPercentage.mindamage,
-                maxdamage: this.bonusStats.maxdamage + (this.owner.baseStats.maxdamage + this.owner.bonusStats.maxdamage) * effect.bonusStatsPercentage.maxdamage,
-                critical: this.bonusStats.critical + (this.owner.baseStats.critical + this.owner.bonusStats.critical) * effect.bonusStatsPercentage.critical,
-                haste: this.bonusStats.haste + (this.owner.baseStats.haste + this.owner.bonusStats.haste) * effect.bonusStatsPercentage.haste 
+
+            if (effect.bonusStatsPercentage && effect.bonusStatsPercentage[stat] > 0) {
+                this.bonusStatsPercentage[stat] = effect.bonusStatsPercentage[stat];
+                this.owner.addBonusStat(stat, effect.bonusStatsPercentage[stat], true);
             }
         }
 
         // update Effect
         this._effect = effect;
         this.rank = effect.rank;
-
-        // update player stats
-        if (effect.bonusStats || effect.bonusStatsPercentage)
-            this.owner.bonusStats = {
-                manaregen: this.owner.bonusStats.manaregen + this.bonusStats.manaregen,
-                defense: this.owner.bonusStats.defense + this.bonusStats.defense,
-                block: this.owner.bonusStats.block + this.bonusStats.block,
-                mindamage: this.owner.bonusStats.mindamage + this.bonusStats.mindamage,
-                maxdamage: this.owner.bonusStats.maxdamage + this.bonusStats.maxdamage,
-                critical: this.owner.bonusStats.critical + this.bonusStats.critical,
-                haste: this.owner.bonusStats.haste + this.bonusStats.haste,
-            }
     }
 
     protected onReset():void {
         // reset bonus stats
-        if (this._effect.bonusStats || this._effect.bonusStatsPercentage)
-            this.owner.bonusStats = {
-                manaregen: this.owner.bonusStats.manaregen - this.bonusStats.manaregen,
-                defense: this.owner.bonusStats.defense - this.bonusStats.defense,
-                block: this.owner.bonusStats.block - this.bonusStats.block,
-                mindamage: this.owner.bonusStats.mindamage - this.bonusStats.mindamage,
-                maxdamage: this.owner.bonusStats.maxdamage - this.bonusStats.maxdamage,
-                critical: this.owner.bonusStats.critical - this.bonusStats.critical,
-                haste: this.owner.bonusStats.haste - this.bonusStats.haste,
-            }
+        for (const stat in this.bonusStats) {
+            if (this.bonusStats[stat] > 0)
+                this.owner.removeBonusStat(stat, this.bonusStats[stat])
+
+            if (this.bonusStatsPercentage[stat] > 0)
+                this.owner.removeBonusStat(stat, this.bonusStatsPercentage[stat], true)
+        }
     }
 
     public onExpire():void {

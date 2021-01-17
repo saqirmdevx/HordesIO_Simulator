@@ -1,0 +1,95 @@
+#Default - Testing simulation block
+# - is used for comment line
+
+debug=1
+slowmotion=0 # Simulation in real time
+simulationtime=300000 # 5minute battle
+
+targets=2
+simulators=300
+mitigation=0.0 #damageReduction in %
+
+#Stats of player (Mana is not properity of stat)
+autoattack=1
+mana=250
+stats.manaregen=6
+stats.block=0.2
+stats.mindamage=154
+stats.maxdamage=182
+stats.haste=0.2
+stats.critical=0.2
+stats.attackSpeed=34
+
+# -- abilityList --
+#Slash
+ability.id=0
+ability.rank=5
+ability=push()
+
+#Crescent Swipe
+ability.id=1
+ability.rank=5
+ability=push()
+
+#UnholyWarcry
+ability.id=2
+ability.rank=4
+ability=push()
+
+#Centrifugal Laceration
+ability.id=3
+ability.rank=5
+ability=push()
+
+#ArmorReinforcement
+ability.id=4
+ability.rank=4
+ability=push()
+
+#Taunt
+ability.id=5
+ability.rank=1
+ability=push()
+
+#Charge
+ability.id=6
+ability.rank=1
+ability=push()
+
+#CrusaderCourage
+ability.id=7
+ability.rank=5
+ability=push()
+
+#Bulwark
+ability.id=8
+ability.rank=5
+ability=push()
+
+#Colossal Reconstruction
+ability.id=9
+ability.rank=3
+ability=push()
+
+#Tempering
+ability.id=10
+ability.rank=1
+ability=push()
+
+#ManaPotion
+ability.id=5001
+ability.condition.mana!=25 #%mana required
+ability.rank=3
+ability=push()
+
+#add abilites queue to cast in order
+abilityQue.add=6 #Charge
+abilityQue.add=2 #Unholy Warcry
+abilityQue.add=7 #Crusader Courage
+abilityQue.add=1 #Crescent Swipe
+abilityQue.add=0 #Slash
+abilityQue.add=10 #Tempering
+abilityQue.add=5 #Taunt
+abilityQue.add=8 #Bulwark
+abilityQue.add=9 #Colossal Reconstruction
+abilityQue.add=5001 #ManaPotion

@@ -1,0 +1,81 @@
+#Default - Testing simulation block
+# - is used for comment line
+
+debug=1
+slowmotion=0 # Simulation in real time
+simulationtime=300000 # 5minute battle
+
+targets=2
+simulators=300
+mitigation=0.0 #damageReduction in %
+
+#Stats of player (Mana is not properity of stat)
+autoattack=0
+mana=600
+stats.manaregen=8
+stats.block=0.1
+stats.mindamage=184
+stats.maxdamage=244
+stats.haste=0.3
+stats.critical=0.3
+stats.attackSpeed=0.0
+
+# -- abilityList --
+#IceBolt
+ability.id=20
+ability.rank=5
+ability=push()
+
+#IcicleOrb
+ability.id=21
+ability.condition.aura=2002
+ability.rank=5
+ability=push()
+
+#HypothermicFrenzy
+ability.id=25
+ability.rank=5
+#ability.condition.cooldown=21
+ability=push()
+
+#ArticAura
+ability.id=24
+ability.rank=4
+ability=push()
+
+#IceShield
+ability.id=26
+ability.rank=1
+ability=push()
+
+#Teleport
+ability.id=27
+ability.rank=1
+ability=push()
+
+#ChillingRadiance
+ability.id=22
+ability.rank=5
+ability=push()
+
+#Enchant
+ability.id=23
+ability.rank=4
+ability=push()
+
+#ManaPotion
+ability.id=5001
+ability.condition.mana!=25 #%mana required
+ability.rank=3
+ability=push()
+
+#add abilites queue to cast in order
+abilityQue.add=23 #Enchant
+abilityQue.add=24 #Artic Aura
+abilityQue.add=22 #chilling Radiance
+abilityQue.add=20 #Icebolt
+abilityQue.add=21 #Icicle Orb
+abilityQue.add=25 #Hypothermic Frenzy
+abilityQue.add=26 #Ice shield
+abilityQue.add=27 #Teleport
+abilityQue.add=5001 #ManaPotion

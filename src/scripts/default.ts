@@ -1,4 +1,4 @@
-import Ability, { spellEffect, abilityPrior, abilityList } from "../ability.js";
+import Ability, { spellEffect, abilityList, abilityData } from "../ability.js";
 import Player from "../player.js";
 
 import { auraEffect } from "../aura.js";
@@ -10,13 +10,11 @@ export class ManaPotion extends Ability {
     private _cooldown:number = 30000;
     private _duration:number = 15000;
 
-    private _applyAura:abilityList = abilityList.DEFAULT_POTION_AURA;
+    private _applyAura:abilityList = abilityList.MANA_POTION_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
-
-        this.priority = abilityPrior.BUFFS;
-        this.name = `Mana Potion ${rank}`;
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Mana Potion ${abilityData.rank}`;
     }
 
     public getEffect(rank:number):spellEffect {
@@ -31,13 +29,6 @@ export class ManaPotion extends Ability {
         this.hasGlobal = false;
         return effect;
     }
-
-    public castCondition():boolean {
-        if (this.owner.getManaPercentage() < 50)
-            return true;
-        return false;
-    }
-
     /**
      * OnImpact is called when ability is casted succesfuly (Done) this is how we apply auras 
      * @param effect - unused here
@@ -47,6 +38,7 @@ export class ManaPotion extends Ability {
         // start with 3 stacks of instabolt
         let auraEffect:auraEffect = {
             id: this._applyAura,
+            name: "Mana Potion",
             hasDamageEffect: false,
             duration: this._duration,
             rank: this.rank,

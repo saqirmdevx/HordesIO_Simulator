@@ -1,18 +1,11 @@
 declare var Vue:any;
 
-import Stats from "./stats.js";
-import { Ranks } from "./ability.js";
-
-import Simulation from "./simulation.js"
+import Simulation from "./simulation.js";
+import APLData from "./apl_script.js";
 
 interface VueData  {
-    stats: { mana: number, manaregen: number, defense: number, block: number, mindamage: number, maxdamage: number, critical: number, haste: number},
-    skillPoints: number,
-    simulators: number,
-    targets: number,
-    mitigation: number,
     combatLog: string,
-    debugText: boolean,
+    debug: boolean,
     damage: { 
         highest: number,
         lowest: number,
@@ -23,25 +16,24 @@ interface VueData  {
         lowest: number,
         average: number
     },
+    maxMana: number,
+    mana: number,
     loading: boolean,
     activeAuras: Array<Object>
 }
 
 class Main {
     public vue:VueData;
+    public result:any;
+    public combatLog:string = "";
 
     constructor() {
         /** Vue Data */
         this.vue = new Vue({
             el: "#app",
             data: {
-                stats: { mana: 0, manaregen: 0, defense: 0, block: 0, mindamage: 0, maxdamage: 0, critical: 0, haste: 0},
-                skillPoints: 0,
-                simulators: 1,
-                targets: 1,
-                mitigation: 0,
                 combatLog: "",
-                debugText: true,
+                debug: false,
                 damage: { 
                     highest: 0,
                     lowest: 0,
@@ -53,84 +45,74 @@ class Main {
                     average: 0
                 },
                 loading: false,
+                mana: 0,
+                maxMana: 0,
                 activeAuras: [],
             },
-            created: function() {
-                /** Initialize stats values based on stats in our script (pre-made for future caching) */
-                this.stats.mana = Stats.mana;
-                this.stats.manaregen = Stats.type.manaregen;
-                this.stats.defense = Stats.type.defense;
-                this.stats.block = Stats.type.block;
-                this.stats.mindamage = Stats.type.mindamage;
-                this.stats.maxdamage = Stats.type.maxdamage;
-                this.stats.haste = Stats.type.haste;
-                this.stats.critical = Stats.type.critical;
-            },
             methods: { 
-                updateSkillPoints: (ability:any) => this.updateSkillPoint(ability),
-                updateStats: (stat:any) => this.updateStats(stat),
-                startSimulation: () => this.startSimulation(),
-            },
-            watch: {
-                /** Limit is between 1 - 1000 */
-                simulators: (val:number):void => { 
-                    if (val > 500) 
-                        this.vue.simulators = 500;
-                    if (val < 1)
-                        this.vue.simulators = 1;
-                },
-                targets: (val:number):void => { 
-                    if (val > 20) 
-                        this.vue.targets = 20;
-                    if (val < 1)
-                        this.vue.targets = 1;
+                readAPLFile: (event:any) => this.readAPLFile(event),
+                startSimulation: () => {
+                    if (this.result) 
+                        this.startSimulation(this.result) 
                 }
             }
         });
     }
 
-    /**
-     * update SkillPoints calculator
-     * @param ability - Ability ID
-     */
-    public updateSkillPoint(ability:any):void {
-        if (!ability.target)
-            return;
-
-        let element:any = ability.target;
-        let value:number = element.value;
-        let output:HTMLOutputElement = element.nextElementSibling;
-
-        output.value = String(value); // Need change value to string since output is plain text not value type
-        
-        Ranks.set(element.dataset.id, value);
-        this.vue.skillPoints = Ranks.spentPoints();
-    }
-
-    public updateStats(stat:any):void {
-        if (!stat.target)
-            return;
+    public readAPLFile(event:any):void {
+        const fileList = event.target.files;
     
-        let element:any = stat.target;
-        let value:number = element.value;
+        for (const file of fileList) {
+            if (file.size > 2000)
+                return;
 
-        // min damage can be higher than
-        if (Number(this.vue.stats.mindamage) > Number(this.vue.stats.maxdamage))
-            this.vue.stats.mindamage = this.vue.stats.maxdamage;
+            let reader = new FileReader();
+            reader.addEventListener('load', (event:any) => {
+                this.result = new APLData(event.target.result);
+                this.resetVueData();
 
-        Stats.set(element.name, Number(value));
+                this.resetCombatLog(`[Mana: ${this.result.mana}, Mana Regen: ${this.result.stats.manaregen}, Block: ${this.result.stats.block}, Min damage: ${this.result.stats.mindamage}, Max damage: ${this.result.stats.maxdamage}, Haste: ${this.result.stats.haste}, Critical: ${this.result.stats.critical}]`);
+                this.addCombatLog(`Simulators: ${this.result.simulators}`, -1, true);
+                this.addCombatLog(`Targets: ${this.result.targets}`, -1, true);
+                this.addCombatLog(`Damage Mitigation: ${this.result.mitigation*100}%`, -1, true);
+                this.addCombatLog(`Slow motion: ${this.result.slowMotion}`, -1, true);
+                this.addCombatLog(`Simulation Time: ${this.result.simulationTime / 1000}s`, -1, true);
+            });
+            reader.readAsText(file);
+        }
     }
 
-    public startSimulation():void {
-        Simulation.start(this.vue.simulators);
+    public resetVueData():void {
+        this.vue.damage.highest = 0;
+        this.vue.damage.lowest = 0;
+        this.vue.damage.average = 0;
+        this.vue.dps.highest = 0;
+        this.vue.dps.lowest = 0;
+        this.vue.dps.average = 0;
+        this.vue.activeAuras.splice(0, this.vue.activeAuras.length);
     }
 
-    public addCombatLog(text:string, time:number):void {
-        this.vue.combatLog = `[${time}ms] - ${text}\n` + this.vue.combatLog;
+    public startSimulation(result:APLData):void {
+        Simulation.start(result);
+    }
+
+    public addCombatLog(text:string, time:number = -1, showInstant:boolean = false):void {
+        if (showInstant || Simulation.slowMotion) {
+            if (time >= 0)
+                this.vue.combatLog = `[${time}ms] - ${text}\n` + this.combatLog;
+            else
+                this.vue.combatLog = `${text}\n` + this.combatLog;
+        }
+
+        if (time >= 0)
+            this.combatLog = `[${time}ms] - ${text}\n` + this.combatLog;
+        else
+            this.combatLog = `${text}\n` + this.combatLog;
     }
 
     public resetCombatLog(text?:string):void {
         this.vue.combatLog = text ? text : "";
+        this.combatLog = text ? text : "";
     }
 }
 

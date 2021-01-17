@@ -1,7 +1,7 @@
 import Aura, { auraEffect } from "./aura.js";
 import Player from "./player.js";
 import { abilityList } from "./ability.js";
-import Main from "./main.js";
+import Simulation from "./simulation.js";
 import { __random } from "./placeholders.js";
 
 export class MageIceboltInstant extends Aura {
@@ -45,8 +45,8 @@ export class WarBulwark extends Aura {
             let applyStacks:number = 0;
 
             // count how much stack we apply (based on the block %)
-            for (let i = 0; i < Main.vue.targets; i++)
-                if (Math.random() < (this.owner.baseStats.block + this.owner.bonusStats.block))
+            for (let i = 0; i < Simulation.targets; i++)
+                if (Math.random() < (this.owner.blockStat))
                     applyStacks++;
 
             if (applyStacks > 0) {
@@ -56,14 +56,15 @@ export class WarBulwark extends Aura {
                 // apply Damage stack buff 
                 let auraEffect:auraEffect = {
                     id: this._applyAura,
+                    name: "Bulwark - Damage",
                     bonusStatsPercentage:  {
                         manaregen:0,
-                        defense:0,
                         block: 0,
                         mindamage: this._bonusDamage[this.rank] * stacks, /** 0 Base damage we give only % */
                         maxdamage: this._bonusDamage[this.rank] * stacks, /** 0 Base damage we give only % */
                         critical:0,
-                        haste:0
+                        haste:0,
+                        attackSpeed:0
                     },
                     hasDamageEffect: false,
                     duration: this._duration,
@@ -91,7 +92,7 @@ export class ManaPotion extends Aura {
 
         this._tickTime -= diff;
         if (this._tickTime <= 0) {
-            this.owner.regenMana(this._manaRegen[this.rank] / 30);
+            this.owner.regenerateMana(this._manaRegen[this.rank] / 30);
             this._tickTime = 500;
         }
     }

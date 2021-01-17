@@ -1,4 +1,4 @@
-import Ability, { spellEffect, abilityPrior, abilityList } from "../ability.js";
+import Ability, { spellEffect, abilityList, abilityData } from "../ability.js";
 import Player from "../player.js";
 
 import { auraEffect } from "../aura.js";
@@ -11,11 +11,12 @@ export class Slash extends Ability {
     private _bonusdamage:Array<number> = [0, 72, 108, 144, 180, 216]; // % Based on min/max damage
     private _manaCost:Array<number> = [0, 2, 3, 4, 5, 6];
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Slash ${abilityData.rank}`;
 
-        this.priority = abilityPrior.LOW_PRIORITY;
-        this.name = `Slash ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -40,11 +41,12 @@ export class CrescentSwipe extends Ability {
 
     private _applyAura:abilityList = abilityList.WAR_CENTRIFUGAL_LACERATION_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Crescent Swipe ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Crescent Swipe ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
         this.isAoe = true;
     }
@@ -69,6 +71,7 @@ export class CrescentSwipe extends Ability {
 
             let auraEffect:auraEffect = {
                 id: this._applyAura,
+                name: "Centrifugal Laceration",
                 hasDamageEffect: true,
                 damageEffect: {
                     baseDamage: 0,
@@ -95,43 +98,43 @@ export class CentrifugalLaceration extends Ability {
     public static bonusDamage:Array<number> = [0, 0.125, 0.157, 0.189, 0.221, 0.253]; // % Based on min/max damage
     public static duration:number = 10000;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Centrifugal Laceration ${abilityData.rank}`;
 
-        this.priority = abilityPrior.PASSIVE;
-        this.name = `Centrifugal Laceration ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 }
 
 export class ArmorReinforcement extends Ability {
     // Placeholder values per rank
-    public bonusDefense:Array<number> = [0, 60, 80, 100, 120, 140]; // % Based on min/max damage
-
     public _applyAura:abilityList = abilityList.WAR_ARMOR_REINFORCEMENT_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Armor Reinforcement ${abilityData.rank}`;
 
-        this.priority = abilityPrior.PASSIVE;
-        this.name = `Armor Reinforcement ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
-        let auraEffect:auraEffect = {
+        /*let auraEffect:auraEffect = {
             id: this._applyAura,
             bonusStats: {
                 manaregen:0,
-                defense: this.bonusDefense[this.rank],
                 block:0,
                 mindamage: 0,
                 maxdamage: 0,
                 critical:0,
-                haste:0
+                haste:0,
+                attackSpeed: 0,
             },
             hasDamageEffect: false,
             duration: -1,
             rank: this.rank
         }
     
-        this.applyAura(auraEffect);
+        this.applyAura(auraEffect);*/
     }
 }
 
@@ -142,14 +145,16 @@ export class UnholyWarcry extends Ability {
     private _duration:number = 300000;
     private _manaCost:Array<number> = [0, 8, 16, 24, 32];
     private _cooldown:number = 150000;
+    protected maxRank:number = 4;
 
     private _applyAura:abilityList = abilityList.WAR_UNHOLYWARCRY_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Unholy Warcry ${abilityData.rank}`;
 
-        this.priority = abilityPrior.BUFFS;
-        this.name = `Unholy Warcry ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -174,14 +179,15 @@ export class UnholyWarcry extends Ability {
     public onImpact():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
+            name: "Unholy Warcry",
             bonusStats: {
                 manaregen:0,
-                defense:0,
                 block:0,
                 mindamage: this._minbonusDamage * this.rank,
                 maxdamage: this._maxbonusDamage * this.rank,
                 critical:0,
-                haste:0
+                haste:0,
+                attackSpeed: 0,
             },
             hasDamageEffect: false,
             duration: this._duration,
@@ -197,11 +203,12 @@ export class Taunt extends Ability {
     private _manaCost:Array<number> = [0, 4, 8, 12, 16, 20];
     private _cooldown:number = 15000;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Taunt ${abilityData.rank}`;
 
-        this.priority = abilityPrior.MEDIUM_PRIORITY;
-        this.name = `Taunt ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -221,12 +228,14 @@ export class Charge extends Ability {
     /** !!!! ->This ability has no effect at the current simulation  */
     private _manaCost:Array<number> = [0, 12];
     private _cooldown:number = 15000;
+    protected maxRank:number = 1;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Charge ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Charge ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -244,18 +253,18 @@ export class Charge extends Ability {
 
 export class CrusadersCourage extends Ability {
     // Placeholder Values
-    private _bonusDefense:Array<number> = [0, 30, 53, 77, 102, 127];
-    private _duration:number = 300000;
+    //private _duration:number = 300000;
     private _manaCost:Array<number> = [0, 8, 16, 24, 32, 40];
     private _cooldown:number = 150000;
 
     private _applyAura:abilityList = abilityList.WAR_CRUSADERS_COURAGE_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `CrusadersCourage ${abilityData.rank}`;
 
-        this.priority = abilityPrior.BUFFS;
-        this.name = `CrusadersCourage ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -278,23 +287,23 @@ export class CrusadersCourage extends Ability {
      * @param timeElsaped - unused here
      */
     public onImpact():void {
-        let auraEffect:auraEffect = {
+        /*let auraEffect:auraEffect = {
             id: this._applyAura,
             bonusStats: {
                 manaregen:0,
-                defense: this._bonusDefense[this.rank],
                 block:0,
                 mindamage: 0,
                 maxdamage: 0,
                 critical:0,
-                haste:0
+                haste:0,
+                attackSpeed: 0,
             },
             hasDamageEffect: false,
             duration: this._duration,
             rank: this.rank
         }
 
-        this.applyAura(auraEffect);
+        this.applyAura(auraEffect);*/
     }
 }
 
@@ -307,11 +316,12 @@ export class Bulwark extends Ability {
 
     private _applyAura:abilityList = abilityList.WAR_BULWARK_AURA_BLOCK;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Bulwark ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Bulwark ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -337,14 +347,15 @@ export class Bulwark extends Ability {
     public onImpact():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
+            name: "Bulwark",
             bonusStats: {
                 manaregen:0,
-                defense:0,
                 block: this._bonusBlock[this.rank],
                 mindamage: 0,
                 maxdamage: 0,
                 critical:0,
-                haste:0
+                haste:0,
+                attackSpeed: 0,
             },
             hasDamageEffect: false,
             duration: this._duration,
@@ -361,11 +372,12 @@ export class ColossalReconstruction extends Ability {
     private _manaCost:Array<number> = [0, 8, 16, 24, 32, 40];
     private _cooldown:number = 25000;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Colossal Reconstruction ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Colossal Reconstruction ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -386,12 +398,14 @@ export class Tempering extends Ability {
     /** !!!! ->This ability has no effect at the current simulation  */
     private _manaCost:Array<number> = [0, 8];
     private _cooldown:number = 30000;
+    protected maxRank:number = 1;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Tempering ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Tempering ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {

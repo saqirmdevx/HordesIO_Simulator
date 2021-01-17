@@ -3,81 +3,8 @@ body {
    margin: 0;
 
    color: black;
-   font-size: 18px;
+   font-size: calc(1.1vw + 3.5px);
 }
-
-.stat-input {
-    width: 42px;
-    margin-left: 4px;
-}
-
-.ability-input {
-    width: 80%;
-    margin-left: 3px;
-}
-
-.stats-sheet {
-    display: grid;
-    grid-template-rows: 60px 60px;
-    grid-template-columns: 180px 180px;
-
-    grid-column-gap: 2px;
-    grid-row-gap: 1px;
-
-    justify-content: space-evenly;
-    padding: 18px;
-
-    width: 400px;
-    margin: auto;
-}
-
-.stats-sheet .item {
-    display: flex;
-    width: 180px;
-    height: 60px;
-    background-color: #EEE;
-
-    justify-content: center;
-    align-items: center;
-}
-
-.stats-sheet .item:nth-child(4n+4),
-.stats-sheet .item:nth-child(4n+3) { background-color: #DDD; }
-
-.abilites {
-    border-top: 2px solid black;
-    margin-top: 50px;
-    padding: 30px 60px;
-}
-
-.abilites h1 {
-    font-weight: bold;
-    font-size: 24px;
-}
-
-.ability-bar {
-    display: flex;
-    flex-wrap: wrap;
-
-    justify-content: flex-start;
-}
-
-.ability-bar .ability {
-    flex: 0 0 14%;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    text-align: center;
-    margin-top: 12px;
-    margin-bottom: 6px;
-    margin-left: 14px;
-}
-
-.class {
-    background-color: #DDD;
-    padding: 6px;
-}
-.class:nth-child(2n) { background-color: #ccc; }
 
 .center-div {
     display: block;
@@ -108,8 +35,8 @@ body {
     position:relative;
     display: inline-block;
 
-    margin: 10px;
-    padding: 16px;
+    margin-right: 10px;
+    padding: 10px;
 
     border: 1px solid gray;
     border-radius: 8px;
@@ -117,7 +44,7 @@ body {
     font-size: 0.85em;
     text-align: center;
 
-    width: 200px;
+    width: calc(85% / 3 - 24px);
 }
 
 .combat p.highest { background-color: #ff838c }
@@ -142,6 +69,7 @@ body {
     border-radius: 7px 0px 0px 7px;
 
     overflow: hidden;
+    transition: width 0.3s
 }
 
 .combat p > span:after {
@@ -171,6 +99,22 @@ body {
 
     overflow: hidden;
   }
+
+.auraList > .auras {
+  display: inline-block;
+  width: calc(84% / 3);
+  font-size: 0.8em;
+  padding: 8px;
+}
+
+.combat .auraList {
+  width: 85%;
+  border: 1px solid black;
+  padding: 10px;
+  margin-left: 10px;
+  border-radius: 8px;
+
+}
 
 .combat textarea {
     width: 100%;
@@ -222,3 +166,7 @@ body {
     }
   }
   
+.inputFile {
+  text-align: center;
+  padding: 28px;
+}

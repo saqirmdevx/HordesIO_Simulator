@@ -1,4 +1,5 @@
 import Player from "./player.js";
+import Simulation from "./simulation.js";
 import Main from "./main.js";
 import Aura, { auraEffect } from "./aura.js";
 
@@ -36,6 +37,7 @@ export enum abilityList {
     MAGE_ICEBOLT_INSTANT = 2003,
 
     MAGE_ICICLEORB = 21,
+
     MAGE_CHILLINGRADIANCE = 22,
     MAGE_CHILLINGRADIANCE_AURA = 2004,
 
@@ -54,16 +56,22 @@ export enum abilityList {
     MAGE_TELEPORT = 27,
 
     /** default abilites */
-    DEFAULT_POTION = 5001,
-    DEFAULT_POTION_AURA = 5002,
+    MANA_POTION = 5001,
+    MANA_POTION_AURA = 5002,
 }
 
-export enum abilityPrior {
-    LOW_PRIORITY,
-    MEDIUM_PRIORITY,
-    HIGH_PRIORITY,
-    BUFFS,
-    PASSIVE
+/** This is used as input data */
+export interface abilityData {
+    id:abilityList,
+    rank:number,
+    condition: {
+        mana?: {
+            negated:boolean,
+            value:number
+        },
+        aura?:Array<any>,
+        cooldown?:abilityList
+    }
 }
 
 export interface spellEffect {
@@ -95,13 +103,16 @@ export default abstract class Ability {
 
     private _storeEffect: spellEffect|null = null;
 
-    // Default
-    public priority:abilityPrior = abilityPrior.LOW_PRIORITY;
+    private _conditions:any;
 
-    constructor(id:number, rank:number, owner:Player) {
-        this.id = id;
-        this.rank = rank;
+    protected maxRank:number = 5;
+
+    constructor(abilityData:abilityData, owner:Player) {
+        this.id = abilityData.id;
+        this.rank = abilityData.rank;
         this.owner = owner;
+
+        this._conditions = abilityData.condition;
     }
 
     public getEffect(rank:number):spellEffect|undefined { return; }
@@ -114,12 +125,12 @@ export default abstract class Ability {
         if (this.hasGlobal)
             this.owner.globalCooldown = Placeholders.GLOBAL_COOLDOWN;
 
-        if (this.owner.id == 0 && Main.vue.debugText)
+        if (this.owner.id == 0 && Simulation.debug)
             if (effect.castTime > 0)
-                Main.addCombatLog(` cast: [${this.name}]`, timeElsaped);
+                Main.addCombatLog(`Cast: [${this.name}]`, timeElsaped);
         
         if (effect.castTime > 0) {
-            this.owner.castTime = __calcHasteBonus(effect.castTime, this.owner.baseStats.haste + this.owner.bonusStats.haste); // add haste formular
+            this.owner.castTime = __calcHasteBonus(effect.castTime, this.owner.hasteStat); // add haste formular
             this._storeEffect = effect;
             return;
         }
@@ -132,13 +143,13 @@ export default abstract class Ability {
             return;
 
         if (effect.cooldown > 0)
-            this.cooldown = __calcHasteBonus(effect.cooldown, this.owner.baseStats.haste + this.owner.bonusStats.haste);
-
-        if (this.owner.id == 0 && Main.vue.debugText)
-            Main.addCombatLog(` cast done: [${this.name}]`, timeElsaped);
+            this.cooldown = __calcHasteBonus(effect.cooldown, this.owner.hasteStat);
 
         if (this.manaCost)
             this.owner.mana -= this.manaCost;
+
+        if (this.owner.id == 0 && Simulation.debug && !effect.baseDamage && !effect.bonusDamage)
+            Main.addCombatLog(`Casted ${this.name}`, timeElsaped);
 
         this.onImpact(effect, timeElsaped);
 
@@ -157,37 +168,61 @@ export default abstract class Ability {
         let baseDamage:number = effect.baseDamage;
         let bonusDamage:number = effect.bonusDamage;
 
-        let critChance:number = this.owner.baseStats.critical + this.owner.bonusStats.critical + critModifier;
+        let critChance:number = this.owner.criticalStat + critModifier;
 
         /** If ability is AOE then deal damage multiple times */
         if (this.isAoe) {
-            let targets:number = Main.vue.targets > this.maxTargets ? this.maxTargets : Main.vue.targets;
+            let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
             for (let i = 0; i < targets; i++) {
                 if (Math.random() < critChance)
                     modifier *= this.onCrit();
 
-                this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
+                this.owner.dealDamage(baseDamage, bonusDamage, modifier, {timeElsaped: timeElsaped, name: this.name});
             }
             return;
         }
 
         if (Math.random() < critChance)
             modifier *= this.onCrit();
-    
-        this.owner.dealDamage(baseDamage, bonusDamage, modifier, timeElsaped);
-    }
 
-    public resetCooldown():void {
-        this.cooldown = 0;
+        this.owner.dealDamage(baseDamage, bonusDamage, modifier, {timeElsaped: timeElsaped, name: this.name});
     }
 
     public reduceCoolown(time:number):void {
-        this.cooldown -= time;
+        this.cooldown = time > 0 ? this.cooldown - time : 0;
+    }
+
+    public onCooldown():boolean {
+        return this.cooldown > 0;
     }
 
     /** for customScripts if condition is passed it can cast */
     public castCondition():boolean {
-        return true;
+        let result:boolean = true;
+        if (Object.keys(this._conditions).length > 0) {
+            if (this._conditions.mana) 
+                result = this._conditions.mana.negated ? this.owner.getManaPercentage() < this._conditions.mana.value : this.owner.getManaPercentage() > this._conditions.mana.value;
+        
+            if (this._conditions.aura) {
+                this._conditions.aura.forEach((condition:any) => {
+                    if (!condition.negated)
+                        result = false;
+                    else
+                        result = true;
+
+                    if (this.owner.hasAura(condition.value))
+                        result = !result;
+                })
+            }
+
+            if (this._conditions.cooldown) {
+                let ability:Ability|undefined = this.owner.getAbility(this._conditions.cooldown.value);
+                if (ability) 
+                    result = this._conditions.cooldown.negated ? !ability.onCooldown() : ability.onCooldown();
+            }
+
+        }
+        return result;
     }
 
     /*** Hooks */
@@ -213,43 +248,5 @@ export default abstract class Ability {
     public onImpact(effect:spellEffect, timeElsaped:number):void {
         if (effect.baseDamage > 0 || effect.bonusDamage > 0)
             this.dealDamage(effect, timeElsaped);
-    }
-}
-
-export class Ranks {
-    /** Abilites **/
-    public static list:Map<abilityList, number> = new Map();
-
-    public static set(ability:abilityList, value:number):void {
-        if (value == 0) {
-            if (this.has(ability))
-                this.list.delete(ability);
-            return;
-        }
-        this.list.set(ability, Number(value));
-    }
-
-    public static get(ability:abilityList):abilityList | undefined {
-        if (this.has(ability))
-            return this.list.get(ability);
-        else
-            return 0;
-    }
-
-    public static has(ability:abilityList):boolean {
-        if (this.list.has(ability))
-            return true;
-        return false;
-    }
-
-    public static spentPoints():number {
-        let spentPoints:number = 0;
-        this.list.forEach((ranks:number, index:number) => {
-            // exclude default abilites
-            if (index > 5000) return;
-            spentPoints += Number(ranks);
-        });
-
-        return spentPoints;
     }
 }

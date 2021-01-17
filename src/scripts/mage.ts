@@ -1,4 +1,4 @@
-import Ability, { spellEffect, abilityPrior, abilityList } from "../ability.js";
+import Ability, { spellEffect, abilityList, abilityData } from "../ability.js";
 import Player from "../player.js";
 
 import Aura, { auraEffect } from "../aura.js";
@@ -16,11 +16,12 @@ export class ChillingRadiance extends Ability {
 
     private _applyAura:abilityList = abilityList.MAGE_CHILLINGRADIANCE_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData: abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Chilling Radiance ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Chilling Radiance ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -47,6 +48,7 @@ export class ChillingRadiance extends Ability {
         // start with 3 stacks of instabolt
         let auraEffect:auraEffect = {
             id: this._applyAura,
+            name: "Chilling Radiance",
             hasDamageEffect: true,
             damageEffect: {
                 baseDamage: this._baseDamage,
@@ -73,15 +75,17 @@ export class IceBolt extends Ability {
     private _iceboltInstant:abilityList = abilityList.MAGE_ICEBOLT_INSTANT;
     private _chillingRadiance:abilityList = abilityList.MAGE_CHILLINGRADIANCE_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Ice bolt ${abilityData.rank}`;
 
-        this.priority = abilityPrior.LOW_PRIORITY;
-        this.name = `Ice bolt ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
         // start with 3 stacks of instabolt
         let auraEffect:auraEffect = {
             id: this._iceboltInstant,
+            name: "Icebolt - Instant",
             hasDamageEffect: false,
             duration: 8000,
             isStackable: true,
@@ -120,6 +124,7 @@ export class IceBolt extends Ability {
 
             let auraEffect:auraEffect = {
                 id: this._iceboltFreeze,
+                name: "Icebolt Freeze",
                 hasDamageEffect: false,
                 duration: 5000,
                 rank: this.rank
@@ -130,6 +135,7 @@ export class IceBolt extends Ability {
         else if (!this.owner.hasAura(this._iceboltFreeze)) { 
             let auraEffect:auraEffect = {
                 id: this._iceboltSlow,
+                name: "Icebolt Slow",
                 hasDamageEffect: false,
                 duration: 8000,
                 isStackable: true,
@@ -140,7 +146,6 @@ export class IceBolt extends Ability {
         }
 
         let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
-
         if (icicleOrb)
             icicleOrb.reduceCoolown(500);
 
@@ -171,11 +176,12 @@ export class IcicleOrb extends Ability {
     private _iceboltFreeze:abilityList = abilityList.MAGE_ICEBOLT_FREEZE;
     private _chillingRadiance:abilityList = abilityList.MAGE_CHILLINGRADIANCE_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Icicle Orb ${abilityData.rank}`;
 
-        this.priority = abilityPrior.MEDIUM_PRIORITY;
-        this.name = `Icicle Orb ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
         this.isAoe = true;
     }
@@ -216,14 +222,16 @@ export class Enchant extends Ability {
     private _duration:number = 300000;
     private _manaCost:Array<number> = [0, 5, 8, 11, 14];
     private _castTime:number = 1500;
+    protected maxRank:number = 4;
 
     private _applyAura:abilityList = abilityList.MAGE_ENCHANT_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Enchant ${abilityData.rank}`;
 
-        this.priority = abilityPrior.BUFFS;
-        this.name = `Enchant ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} - Rank is not in range`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -248,14 +256,15 @@ export class Enchant extends Ability {
     public onImpact():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
+            name: "Enchant",
             bonusStats: {
                 manaregen:0,
-                defense:0,
                 block:0,
                 mindamage: this._minbonusDamage[this.rank],
                 maxdamage: this._maxbonusDamage[this.rank],
                 critical:0,
-                haste:0
+                haste:0,
+                attackSpeed: 0,
             },
             hasDamageEffect: false,
             duration: this._duration,
@@ -272,14 +281,16 @@ export class ArcticAura extends Ability {
     private _duration:number = 300000;
     private _manaCost:Array<number> = [0, 15, 25, 35, 45];
     private _cooldown:number = 120000;
+    protected _maxRank:number = 4;
 
     private _applyAura:abilityList = abilityList.MAGE_ARCTIC_AURA_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Arctic Aura ${abilityData.rank}`;
 
-        this.priority = abilityPrior.BUFFS;
-        this.name = `Arctic Aura ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -304,14 +315,15 @@ export class ArcticAura extends Ability {
     public onImpact():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
+            name: "Arctic Aura",
             bonusStats: {
                 manaregen:0,
-                defense:0,
                 block:0,
                 mindamage: 0,
                 maxdamage: 0,
                 critical: this._bonusCritical[this.rank],
-                haste:0
+                haste:0,
+                attackSpeed: 0,
             },
             hasDamageEffect: false,
             duration: this._duration,
@@ -331,11 +343,12 @@ export class HypothermicFrenzy extends Ability {
 
     private _applyAura:abilityList = abilityList.MAGE_HYPOTHERMIC_FRENZY_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Hypothermic frenzy ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Hypothermic frenzy ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -359,28 +372,34 @@ export class HypothermicFrenzy extends Ability {
     public onImpact():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
+            name: "Hypothermic Frenzy",
             bonusStats: {
                 manaregen:0,
-                defense:0,
                 block:0,
                 mindamage: 0,
                 maxdamage: 0,
                 critical:0,
-                haste: this._bonusHaste[this.rank]
+                haste: this._bonusHaste[this.rank],
+                attackSpeed: 0,
             },
             bonusStatsPercentage:  {
                 manaregen:0,
-                defense:0,
                 block: 0,
                 mindamage: this._bonusDamage[this.rank], /** 0 Base damage we give only % */
                 maxdamage: this._bonusDamage[this.rank], /** 0 Base damage we give only % */
                 critical:0,
-                haste:0
+                haste:0,
+                attackSpeed: 0,
             },
             hasDamageEffect: false,
             duration: this._duration,
             rank: this.rank
         }
+
+        // reset cooldown on Icicle Orb
+        let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
+        if (icicleOrb)
+            icicleOrb.reduceCoolown(-1);
 
         this.applyAura(auraEffect);
     }
@@ -395,11 +414,12 @@ export class IceShield extends Ability {
 
     private _applyAura:abilityList = abilityList.MAGE_ICE_SHIELD_AURA;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Ice Shield ${abilityData.rank}`;
 
-        this.priority = abilityPrior.HIGH_PRIORITY;
-        this.name = `Ice Shield ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
@@ -447,12 +467,14 @@ export class Teleport extends Ability {
     // Placeholder Values
     private _manaCost:Array<number> = [0, 4];
     private _cooldown:number = 12000;
+    protected maxRank:number = 1;
 
-    constructor(id:number, rank:number, owner:Player) {
-        super(id, rank, owner);
+    constructor(abilityData:abilityData, owner:Player) {
+        super(abilityData, owner);
+        this.name = `Teleport ${abilityData.rank}`;
 
-        this.priority = abilityPrior.MEDIUM_PRIORITY;
-        this.name = `Teleport ${rank}`;
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
     public getEffect(rank:number):spellEffect {
