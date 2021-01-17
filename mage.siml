@@ -7,7 +7,7 @@ simulationtime=300000 # 5minute battle
 
 targets=2
 simulators=300
-mitigation=0.0 #damageReduction in %
+mitigation=0.25 #damageReduction in %
 
 #Stats of player (Mana is not properity of stat)
 autoattack=0
@@ -65,7 +65,7 @@ ability=push()
 
 #ManaPotion
 ability.id=5001
-ability.condition.mana!=25 #%mana required
+ability.condition.mana!=25 #Mana below 25%
 ability.rank=3
 ability=push()
 

@@ -78,7 +78,7 @@ ability=push()
 
 #ManaPotion
 ability.id=5001
-ability.condition.mana!=25 #%mana required
+ability.condition.mana!=25 # mana below 25%
 ability.rank=3
 ability=push()
 
