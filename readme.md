@@ -1,5 +1,7 @@
 # HordesIO_Simulator
 
+<a href="https://quentis.itch.io/testing-hordesiosim"> ## Simulation page </a>
+
 This is simulation for <a href="https://hordes.io"> Hordes.Io </a>
 
 ## APL Example
