@@ -19,7 +19,7 @@ export class Slash extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
             bonusDamage: this._bonusdamage[rank],
@@ -51,7 +51,7 @@ export class CrescentSwipe extends Ability {
         this.isAoe = true;
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
             bonusDamage: this._bonusdamage[rank],
@@ -157,7 +157,7 @@ export class UnholyWarcry extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -211,7 +211,7 @@ export class Taunt extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -238,7 +238,7 @@ export class Charge extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -267,7 +267,7 @@ export class CrusadersCourage extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -324,7 +324,7 @@ export class Bulwark extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -380,7 +380,7 @@ export class ColossalReconstruction extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -408,7 +408,7 @@ export class Tempering extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,

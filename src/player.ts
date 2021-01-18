@@ -2,7 +2,7 @@ import Ability, { abilityList, abilityData } from "./ability.js";
 import Aura from "./aura.js";
 import Main from "./main.js";
 import Simulation from "./simulation.js";
-import {  __calcHasteBonus, __random } from "./placeholders.js";
+import {  __calcHasteBonus, __random } from "./misc.js";
 
 import * as MageScripts from "./scripts/mage.js";
 import * as WarriorScripts from "./scripts/warrior.js";
@@ -108,14 +108,14 @@ export default class Player {
             this.castTime -= diff;
 
         if (this.hasAutoattack) {
-            if (this._autoAttackTimmer <= diff)
+            if (this._autoAttackTimmer < diff)
                 this.commitAutoattack(timeElsaped);
             else
                 this._autoAttackTimmer -= diff;
         }
 
         this._regenTime -= diff;
-        if (this._regenTime <= diff) {
+        if (this._regenTime < diff) {
             if (this.getManaPercentage() < 100)
                 this.regenerateMana(this.manaregenStat);
             this._regenTime = 5000;
@@ -139,7 +139,7 @@ export default class Player {
         for (let i = 0; i < this._abilityList.length; i++) 
             this._abilityList[i].doUpdate(diff, timeElsaped);
 
-        if (this.globalCooldown <= 0 && !this.isCasting){
+        if (this.globalCooldown < diff && !this.isCasting){
             this._jumps = 0;
             this.doCast(timeElsaped, this._queIndex);
         }

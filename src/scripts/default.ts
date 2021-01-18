@@ -17,7 +17,7 @@ export class ManaPotion extends Ability {
         this.name = `Mana Potion ${abilityData.rank}`;
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,

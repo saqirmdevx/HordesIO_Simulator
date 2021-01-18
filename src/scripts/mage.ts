@@ -24,7 +24,7 @@ export class ChillingRadiance extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
 
         let effect:spellEffect = {
             baseDamage: 0,
@@ -97,7 +97,7 @@ export class IceBolt extends Ability {
         this.applyAura(auraEffect);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let castTime:number = this._castTime;
         let iceboltInstant:Aura|undefined = this.owner.getAuraById(this._iceboltInstant);
 
@@ -187,7 +187,7 @@ export class IcicleOrb extends Ability {
         this.isAoe = true;
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
             bonusDamage: this._bonusdamage[rank],
@@ -235,7 +235,7 @@ export class Enchant extends Ability {
             throw new Error(`APL DATA Error - ${this.name} - Rank is not in range`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -294,7 +294,7 @@ export class ArcticAura extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -352,7 +352,7 @@ export class HypothermicFrenzy extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -423,7 +423,7 @@ export class IceShield extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -478,7 +478,7 @@ export class Teleport extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public getEffect(rank:number):spellEffect {
+    public prepare(rank:number):spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,

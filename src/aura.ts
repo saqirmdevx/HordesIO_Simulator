@@ -1,6 +1,6 @@
 import {abilityList } from "./ability.js"
 import Simulation from "./simulation.js";
-import { Placeholders, __calcHasteBonus } from "./placeholders.js";
+import { Placeholders, __calcHasteBonus } from "./misc.js";
 import Player, { statTypes } from "./player.js";
 
 export interface auraEffect {
@@ -80,7 +80,7 @@ export default class Aura {
         this.name = effect.name;
 
         if (effect.damageEffect)
-            this.tickTime = __calcHasteBonus(effect.damageEffect.tickIndex * 1000, (this.owner.hasteStat))
+            this.tickTime = Math.round(__calcHasteBonus(effect.damageEffect.tickIndex * 10, this.owner.hasteStat)) * 100;
 
         this.onApply(effect);
     }
@@ -90,13 +90,13 @@ export default class Aura {
 
         this.duration -= diff;
 
-        if (this.duration <= 0)
+        if (this.duration < diff)
             this.onExpire();
 
         if (this.tickTime > 0)
             this.tickTime -= diff;
 
-        if (this.tickTime <= 0) {
+        if (this.tickTime < diff) {
             if (this._effect.damageEffect)
                 this.dealDamage(this._effect.damageEffect, timeElsaped)
         }

@@ -3,7 +3,7 @@ import Simulation from "./simulation.js";
 import Main from "./main.js";
 import Aura, { auraEffect } from "./aura.js";
 
-import { Placeholders, __calcHasteBonus, __random } from "./placeholders.js";
+import { Placeholders, __calcHasteBonus, __random } from "./misc.js";
 
 export enum abilityList {
     WAR_SLASH = 0,
@@ -115,10 +115,14 @@ export default abstract class Ability {
         this._conditions = abilityData.condition;
     }
 
-    public getEffect(rank:number):spellEffect|undefined { return; }
+    /**
+     * This function is called before ability is invoked (casted)
+     * @param rank - Ability rank
+     */
+    public prepare(rank:number):spellEffect|undefined { return; }
 
     public cast(timeElsaped:number):void {
-        let effect:spellEffect|undefined = this.getEffect(this.rank);
+        let effect:spellEffect|undefined = this.prepare(this.rank);
         if (!effect)
             return;
 
@@ -143,7 +147,7 @@ export default abstract class Ability {
             return;
 
         if (effect.cooldown > 0)
-            this.cooldown = __calcHasteBonus(effect.cooldown, this.owner.hasteStat);
+            this.cooldown = Math.round(__calcHasteBonus(effect.cooldown / 100, this.owner.hasteStat)) * 100;
 
         if (this.manaCost)
             this.owner.mana -= this.manaCost;
@@ -160,7 +164,7 @@ export default abstract class Ability {
         if (this.cooldown > 0)
             this.cooldown -= diff;
         
-        if (this.owner.castTime <= 0 && this._storeEffect)
+        if (this.owner.castTime < diff && this._storeEffect)
             this._done(this._storeEffect, timeElsaped);
     }
 

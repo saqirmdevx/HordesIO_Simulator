@@ -2,7 +2,7 @@ import Aura, { auraEffect } from "./aura.js";
 import Player from "./player.js";
 import { abilityList } from "./ability.js";
 import Simulation from "./simulation.js";
-import { __random } from "./placeholders.js";
+import { __random } from "./misc.js";
 
 export class MageIceboltInstant extends Aura {
     constructor(effect:auraEffect, owner:Player) {
@@ -39,7 +39,7 @@ export class WarBulwark extends Aura {
         super.doUpdate(diff, timeElsaped);
 
         this._applyInterval -= diff
-        if (this._applyInterval <= 0) {
+        if (this._applyInterval < diff) {
             this._applyInterval = 1000;
 
             let applyStacks:number = 0;
@@ -91,7 +91,7 @@ export class ManaPotion extends Aura {
         super.doUpdate(diff, timeElsaped);
 
         this._tickTime -= diff;
-        if (this._tickTime <= 0) {
+        if (this._tickTime < diff) {
             this.owner.regenerateMana(this._manaRegen[this.rank] / 30);
             this._tickTime = 500;
         }
