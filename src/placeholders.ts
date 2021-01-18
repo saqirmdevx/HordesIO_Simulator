@@ -9,7 +9,7 @@ export enum Placeholders {
  * @param haste - haste % (stats)
  */
 export function __calcHasteBonus(time:number, haste:number):number {
-    return Math.floor(time / (1 + haste));
+    return time / (1 + haste);
 }
 
 /**

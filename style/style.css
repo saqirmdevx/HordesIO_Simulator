@@ -61,9 +61,9 @@ body {
 
 .combat p > .fill {
     position: absolute;
-    top: 0;
+    top: -0.5%;
     left: -0.5px;
-    height: 100%;
+    height: 101%;
     z-index: -1;
     background-color: #ff838c;
     border-radius: 7px 0px 0px 7px;
@@ -111,17 +111,16 @@ body {
   width: 85%;
   border: 1px solid black;
   padding: 10px;
-  margin-left: 10px;
   border-radius: 8px;
 
 }
 
 .combat textarea {
-    width: 100%;
-    height: 400px;
+    width: 85%;
+    height: 450px;
 
-    margin: 8px;
-    padding: 8px;
+    margin-top: 12px;
+    padding: 10px;
 }
 
 #loading {

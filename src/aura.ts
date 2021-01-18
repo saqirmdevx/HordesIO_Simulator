@@ -106,7 +106,7 @@ export default class Aura {
         let baseDamage:number = damageEffect.baseDamage * this._stacks;
         let bonusDamage:number = damageEffect.bonusDamage * this._stacks;
         // resetTick timer
-        this.tickTime = __calcHasteBonus(damageEffect.tickIndex * 1000, (this.owner.hasteStat + this.owner.hasteStat))
+        this.tickTime = Math.round(__calcHasteBonus(damageEffect.tickIndex * 10, this.owner.hasteStat)) * 100;
 
         let critChance:number = this.owner.criticalStat + this.owner.criticalStat + critModifier;
 

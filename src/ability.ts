@@ -130,7 +130,7 @@ export default abstract class Ability {
                 Main.addCombatLog(`Cast: [${this.name}]`, timeElsaped);
         
         if (effect.castTime > 0) {
-            this.owner.castTime = __calcHasteBonus(effect.castTime, this.owner.hasteStat); // add haste formular
+            this.owner.castTime =  Math.round(__calcHasteBonus(effect.castTime / 100, this.owner.hasteStat)) * 100;
             this._storeEffect = effect;
             return;
         }

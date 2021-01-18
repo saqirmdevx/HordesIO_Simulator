@@ -118,7 +118,26 @@ export class IceBolt extends Ability {
     }
 
     public onImpact(effect:spellEffect, timeElsaped:number):void {
-       let iceboltSlowAura:Aura|undefined = this.owner.getAuraById(this._iceboltSlow);
+        let iceboltSlowAura:Aura|undefined = this.owner.getAuraById(this._iceboltSlow);
+        let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
+
+        if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
+            let dmgMod = 1.0;
+            let critMod = 0;
+
+            if (icicleOrb)
+                icicleOrb.reduceCoolown(500);
+
+            let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
+            if (chillingRadiance)
+                critMod = 0.01 + (0.03 * chillingRadiance.rank);
+
+            if (this.owner.hasAura(this._iceboltFreeze))
+                dmgMod = 1.5; //50% damage increase when target is frozen
+
+            this.dealDamage(effect, timeElsaped, dmgMod, critMod); 
+        }
+
         if (iceboltSlowAura && iceboltSlowAura.getStacks() >= 4) {
             iceboltSlowAura.onRemove(); // Remove slow aura
 
@@ -143,24 +162,6 @@ export class IceBolt extends Ability {
                 rank: this.rank
             }
             this.applyAura(auraEffect);
-        }
-
-        let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
-        if (icicleOrb)
-            icicleOrb.reduceCoolown(500);
-
-        if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
-            let dmgMod = 1.0;
-            let critMod = 0;
-
-            let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
-            if (chillingRadiance)
-                critMod = 0.01 + (0.03 * chillingRadiance.rank);
-
-            if (this.owner.hasAura(this._iceboltFreeze))
-                dmgMod = 1.5; //50% damage increase when target is frozen
-
-            this.dealDamage(effect, timeElsaped, dmgMod, critMod); 
         }
     }
 }

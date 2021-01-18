@@ -29,6 +29,12 @@ export default class Simulation {
         if (!this.slowMotion)
             Main.vue.loading = true;
 
+        Main.resetCombatLog(`[Mana: ${result.mana}, Mana Regen: ${result.stats.manaregen}, Block: ${result.stats.block}, Min damage: ${result.stats.mindamage}, Max damage: ${result.stats.maxdamage}, Haste: ${result.stats.haste}, Critical: ${result.stats.critical}]`);
+        Main.addCombatLog(`Simulators: ${result.simulators}`, -1, true);
+        Main.addCombatLog(`Targets: ${result.targets}`, -1, true);
+        Main.addCombatLog(`Damage Mitigation: ${result.mitigation*100}%`, -1, true);
+        Main.addCombatLog(`Slow motion: ${result.slowMotion}`, -1, true);
+        Main.addCombatLog(`Simulation Time: ${result.simulationTime / 1000}s`, -1, true);
         Main.addCombatLog("Simulation starts");
         if (this.debug)
             Main.addCombatLog(`---------------------------------------`);
