@@ -1,6 +1,6 @@
 import {abilityList } from "./ability.js"
 import Simulation from "./simulation.js";
-import { Placeholders, __calcHasteBonus } from "./misc.js";
+import { __calcHasteBonus } from "./misc.js";
 import Player, { statTypes } from "./player.js";
 
 export interface auraEffect {
@@ -24,6 +24,7 @@ export interface auraDamageEffect {
     tickIndex: number,
     isAoe?: boolean,
     maxTargets?: number,
+    triggeredDamage?: boolean
 }
 
 export default class Aura {
@@ -91,7 +92,7 @@ export default class Aura {
         this.duration -= diff;
 
         if (this.duration < diff)
-            this.onExpire();
+            this.expire();
 
         if (this.tickTime > 0)
             this.tickTime -= diff;
@@ -103,30 +104,39 @@ export default class Aura {
     }
 
     public dealDamage(damageEffect:auraDamageEffect, timeElsaped:number, modifier:number = 1, critModifier:number = 0):void {
-        let baseDamage:number = damageEffect.baseDamage * this._stacks;
-        let bonusDamage:number = damageEffect.bonusDamage * this._stacks;
+        let baseDamage:number = damageEffect.baseDamage;
+        let bonusDamage:number; 
+        if (damageEffect.triggeredDamage)
+            bonusDamage = damageEffect.bonusDamage * this._stacks;
+        else
+            bonusDamage = ((this.owner.mindamageStat + this.owner.maxdamageStat) / 2 * damageEffect.bonusDamage / 100) * this._stacks;
+
         // resetTick timer
         this.tickTime = Math.round(__calcHasteBonus(damageEffect.tickIndex * 10, this.owner.hasteStat)) * 100;
 
         let critChance:number = this.owner.criticalStat + this.owner.criticalStat + critModifier;
+        let isCrit:boolean = false;
 
-        if (damageEffect.isAoe) {
+        if (damageEffect.isAoe && Simulation.targets > 1) {
             let maxTargets = damageEffect.maxTargets ? damageEffect.maxTargets : 20;
             let targets:number = Simulation.targets > maxTargets ? maxTargets : Simulation.targets;
             for (let i = 0; i < targets; i++) {
-                let tempMod = modifier;
-                if (Math.random() < critChance)
-                    tempMod *= this.onCrit();
+                if (Math.random() < critChance) {
+                    this.onCrit();
+                    isCrit = true;
+                }
 
-                this.owner.dealDamage(baseDamage, bonusDamage, tempMod, {timeElsaped: timeElsaped, name: this.name}, true);
+                this.owner.dealDamage(baseDamage, bonusDamage, {isCrit: isCrit, timeElsaped: timeElsaped, name: this.name}, modifier, true);
             }
             return;
         }
 
-        if (Math.random() < critChance)
-            modifier *= this.onCrit();
+        if (Math.random() < critChance) {
+            this.onCrit();
+            isCrit = true;
+        }
 
-        this.owner.dealDamage(baseDamage, bonusDamage, modifier, {timeElsaped: timeElsaped, name: this.name}, true);
+        this.owner.dealDamage(baseDamage, bonusDamage, {isCrit: isCrit, timeElsaped: timeElsaped, name: this.name}, modifier, true);
     }
 
     /** If aura exists we apply aura and refresh uration */
@@ -181,7 +191,7 @@ export default class Aura {
         }
     }
 
-    public onExpire():void {
+    public expire():void {
         this.onRemove();
     }
 
@@ -221,7 +231,7 @@ export default class Aura {
         this.owner.applyAura(aura);
     }
 
-    public onCrit():number {
-        return Placeholders.CRITICAL_DAMAGE;
+    public onCrit():void {
+        return;
     }
 }

@@ -154,6 +154,33 @@ Name - Id
 
     Teleport = 27
 ```
+
+### Archer: 
+```code
+    Swift Shot = 28
+    Swift Shot - Instant Aura = 3000 /** Applied by precise shot */
+
+    Precise Shot = 29
+    Precise Shot - Instant = 3001 /** Applied by Dash */
+
+    Dash = 30
+
+    Serpent Arrows = 31
+
+    Poison Arrows = 32
+    Poison Arrows - Aura = 3002 /** applied by precise shot if has poison arrows */
+
+    Invigorate = 33
+    Invigorate - Aura = 3003
+
+    Pathfinding = 34
+
+    Cranial Punctures = 35
+
+    Temporal Dilatation = 36
+    Temporal Dilatation - Aura = 3005
+```
+
 ### Default :
 Name - Id
 ```code

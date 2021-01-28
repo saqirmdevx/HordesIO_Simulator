@@ -9,7 +9,7 @@ export class MageIceboltInstant extends Aura {
         super(effect, owner);
     }
 
-    public onExpire():void {
+    public expire():void {
         // Reset duration and apply next stack
         this.duration = 8000;
         this._stacks += this._stacks < this._maxStacks ? 1 : 0;

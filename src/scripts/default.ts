@@ -15,16 +15,20 @@ export class ManaPotion extends Ability {
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Mana Potion ${abilityData.rank}`;
+
+        this.maxRank = 3;
+
+        if (this.rank > this.maxRank || this.rank < 0)
+            throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
             cooldown: this._cooldown,
             castTime: 0,
         }
-        this.ignoreAura = true;
         this.applyAuraId = this._applyAura; // only for condition
         this.hasGlobal = false;
         return effect;

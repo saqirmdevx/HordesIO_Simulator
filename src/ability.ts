@@ -15,7 +15,6 @@ export enum abilityList {
     WAR_CENTRIFUGAL_LACERATION_AURA = 1002,
 
     WAR_ARMOR_REINFORCEMENT = 4,
-    WAR_ARMOR_REINFORCEMENT_AURA = 1003,
 
     WAR_TAUNT = 5,
     WAR_CHARGE = 6,
@@ -54,6 +53,31 @@ export enum abilityList {
     MAGE_ICE_SHIELD_AURA = 2008, //Unused
 
     MAGE_TELEPORT = 27,
+
+    /*** Archer Abilites */
+    ARCHER_SWIFT_SHOT = 28,
+    ARCHER_SWIFT_SHOT_INSTANT = 3000, /** Applied by precise shot */
+
+    ARCHER_PRECISE_SHOT = 29,
+    ARCHER_PRECISE_SHOT_INSTANT = 3001, /** Applied by Dash */
+
+    ARCHER_DASH = 30,
+
+    ARCHER_SERPENT_ARROWS = 31,
+
+    ARCHER_POISON_ARROWS = 32,
+    ARCHER_POISON_ARROWS_AURA = 3002, /** applied by precise shot if has poison arrows */
+
+    ARCHER_INVIGORATE = 33,
+    ARCHER_INVIGORATE_AURA = 3003,
+
+    ARCHER_PATHFINDING = 34,
+    ARCHER_PATHFINDING_AURA = 3004, /** UNUSED */
+
+    ARCHER_CRANIAL_PUNCTURES = 35, /** Passive */
+
+    ARCHER_TEMPORAL_DILATATION = 36,
+    ARCHER_TEMPORAL_DILATATION_AURA = 3005,
 
     /** default abilites */
     MANA_POTION = 5001,
@@ -97,7 +121,7 @@ export default abstract class Ability {
     public maxTargets:number = 20;
 
     public applyAuraId:number = 0;
-    public ignoreAura:boolean = false;
+    public forced:boolean = false;
 
     public manaCost:number = 0;
 
@@ -107,7 +131,7 @@ export default abstract class Ability {
 
     protected maxRank:number = 5;
 
-    constructor(abilityData:abilityData, owner:Player) {
+    protected constructor(abilityData:abilityData, owner:Player) {
         this.id = abilityData.id;
         this.rank = abilityData.rank;
         this.owner = owner;
@@ -119,15 +143,15 @@ export default abstract class Ability {
      * This function is called before ability is invoked (casted)
      * @param rank - Ability rank
      */
-    public prepare(rank:number):spellEffect|undefined { return; }
+    protected prepare():spellEffect|undefined { return; }
 
     public cast(timeElsaped:number):void {
-        let effect:spellEffect|undefined = this.prepare(this.rank);
+        let effect:spellEffect|undefined = this.prepare();
         if (!effect)
             return;
 
         if (this.hasGlobal)
-            this.owner.globalCooldown = Placeholders.GLOBAL_COOLDOWN;
+            this.owner.globalCooldown = Math.round(__calcHasteBonus(Placeholders.GLOBAL_COOLDOWN, this.owner.hasteStat)) * 100;
 
         if (this.owner.id == 0 && Simulation.debug)
             if (effect.castTime > 0)
@@ -168,32 +192,30 @@ export default abstract class Ability {
             this._done(this._storeEffect, timeElsaped);
     }
 
-    public dealDamage(effect:spellEffect, timeElsaped:number, modifier:number = 1, critModifier:number = 0):void {
+    protected dealDamage(effect:spellEffect, timeElsaped:number, modifier:number, critModifier:number):number {
         let baseDamage:number = effect.baseDamage;
         let bonusDamage:number = effect.bonusDamage;
 
         let critChance:number = this.owner.criticalStat + critModifier;
+        let isCrit:boolean = false;
 
-        /** If ability is AOE then deal damage multiple times */
-        if (this.isAoe) {
-            let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
-            for (let i = 0; i < targets; i++) {
-                if (Math.random() < critChance)
-                    modifier *= this.onCrit();
-
-                this.owner.dealDamage(baseDamage, bonusDamage, modifier, {timeElsaped: timeElsaped, name: this.name});
-            }
-            return;
+        if (Math.random() < critChance){
+            this.onCrit();
+            isCrit = true; 
         }
 
-        if (Math.random() < critChance)
-            modifier *= this.onCrit();
+        return this.owner.dealDamage(baseDamage, bonusDamage, {timeElsaped: timeElsaped, name: this.name, isCrit: isCrit}, modifier);
+    }
 
-        this.owner.dealDamage(baseDamage, bonusDamage, modifier, {timeElsaped: timeElsaped, name: this.name});
+    public resetCooldown():void {
+        this.cooldown = 0;
     }
 
     public reduceCoolown(time:number):void {
-        this.cooldown = time > 0 ? this.cooldown - time : 0;
+        if (!time)
+            return;
+
+        this.cooldown = this.cooldown - time;
     }
 
     public onCooldown():boolean {
@@ -225,6 +247,8 @@ export default abstract class Ability {
                     result = this._conditions.cooldown.negated ? !ability.onCooldown() : ability.onCooldown();
             }
 
+            if (this._conditions.forced !== undefined)
+                this.forced = this._conditions.forced;
         }
         return result;
     }
@@ -245,12 +269,23 @@ export default abstract class Ability {
         this.owner.applyAura(aura);
     }
 
-    public onCrit():number {
-        return Placeholders.CRITICAL_DAMAGE;
+    protected onCrit():void {
+        return;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void {
-        if (effect.baseDamage > 0 || effect.bonusDamage > 0)
-            this.dealDamage(effect, timeElsaped);
+    protected onImpact(effect:spellEffect, timeElsaped:number, damageMod:number = 1, critMod:number = 0):number|void {
+        /** If ability is AOE then deal damage multiple times */
+        if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
+            if (this.isAoe && Simulation.targets > 1) {
+                let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
+                let damage:number = 0;
+                for (let i = 0; i < targets; i++)
+                    damage = this.dealDamage(effect, timeElsaped, damageMod, critMod);
+
+                return damage;
+            }
+            return this.dealDamage(effect, timeElsaped, damageMod, critMod);
+        }
+        return;
     }
 }

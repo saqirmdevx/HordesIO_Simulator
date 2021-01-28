@@ -1,6 +1,6 @@
 export enum Placeholders {
     CRITICAL_DAMAGE = 2.0, // 200%
-    GLOBAL_COOLDOWN = 1000 // 1sec
+    GLOBAL_COOLDOWN = 15 // 1.5sec (* 100)
 }
 
 /**

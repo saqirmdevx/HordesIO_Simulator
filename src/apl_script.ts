@@ -97,42 +97,42 @@ export default class APLData {
         }
 
         if (base === "debug") {
-            this.debug = Boolean(result > 0 ? true : false);
+            this.debug = Number(result) > 0 ? true : false;
             return;
         }
 
         if (base === "mana") {
-            this.mana = Number(result > 0 ? result : 100);
+            this.mana = Number(result) > 0 ? Number(result) : 100;
             return;
         }
 
         if (base === "simulators") {
-            this.simulators = Number(result > 0 && result <= 10000 ? result : 1);
+            this.simulators = Number(result) > 0 && Number(result) <= 10000 ? Number(result) : 1;
             return;
         }
 
         if (base === "mitigation") {
-            this.mitigation = Number(result >= 0 && result <= 1 ? result : 0);
+            this.mitigation = Number(result) > 0 ? Number(result) : 0;
             return;
         }
 
         if (base === "targets") {
-            this.targets = Number(result > 0 && result <= 20 ? result : 1);
+            this.targets = Number(result) > 0 && Number(result) <= 20 ? Number(result) : 1;
             return;
         }
 
         if (base === "simulationtime") {
-            this.simulationTime = Number(result > 0 ? result : 60000);
+            this.simulationTime = Number(result) > 0 ? Number(result) : 60000;
             return;
         }
 
         if (base === "slowmotion") {
-            this.slowMotion = Boolean(result > 0 ? true : false);
+            this.slowMotion = Number(result) > 0 ? true : false;
             return;
         }
 
         if (base === "autoattack") {
-            this.autoAttack = Boolean(result > 0 ? true : false);
+            this.autoAttack = Number(result) > 0 ? true : false;
             return;
         }
 

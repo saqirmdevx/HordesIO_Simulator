@@ -24,7 +24,7 @@ export class ChillingRadiance extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
 
         let effect:spellEffect = {
             baseDamage: 0,
@@ -33,8 +33,7 @@ export class ChillingRadiance extends Ability {
             castTime: 0,
         }
 
-        this.manaCost = this._manaCost[rank];
-        this.ignoreAura = false;
+        this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -97,7 +96,7 @@ export class IceBolt extends Ability {
         this.applyAura(auraEffect);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let castTime:number = this._castTime;
         let iceboltInstant:Aura|undefined = this.owner.getAuraById(this._iceboltInstant);
 
@@ -108,12 +107,12 @@ export class IceBolt extends Ability {
 
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
-            bonusDamage: this._bonusdamage[rank],
+            bonusDamage: this._bonusdamage[this.rank],
             cooldown: 0,
             castTime: castTime
         }
 
-        this.manaCost = this._manaCost[rank];   
+        this.manaCost = this._manaCost[this.rank];   
         return effect;
     }
 
@@ -121,22 +120,20 @@ export class IceBolt extends Ability {
         let iceboltSlowAura:Aura|undefined = this.owner.getAuraById(this._iceboltSlow);
         let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
 
-        if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
-            let dmgMod = 1.0;
-            let critMod = 0;
+        let dmgMod:number = 1.0;
+        let critMod:number = 0;
 
-            if (icicleOrb)
-                icicleOrb.reduceCoolown(500);
+        if (icicleOrb)
+            icicleOrb.reduceCoolown(500);
 
-            let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
-            if (chillingRadiance)
-                critMod = 0.01 + (0.03 * chillingRadiance.rank);
+        let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance);
+        if (chillingRadiance)
+            critMod = 0.01 + (0.03 * chillingRadiance.rank);
 
-            if (this.owner.hasAura(this._iceboltFreeze))
-                dmgMod = 1.5; //50% damage increase when target is frozen
+        if (this.owner.hasAura(this._iceboltFreeze))
+            dmgMod = 1.5; //50% damage increase when target is frozen
 
-            this.dealDamage(effect, timeElsaped, dmgMod, critMod); 
-        }
+        super.onImpact(effect, timeElsaped, dmgMod, critMod);
 
         if (iceboltSlowAura && iceboltSlowAura.getStacks() >= 4) {
             iceboltSlowAura.onRemove(); // Remove slow aura
@@ -187,32 +184,30 @@ export class IcicleOrb extends Ability {
         this.isAoe = true;
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
-            bonusDamage: this._bonusdamage[rank],
+            bonusDamage: this._bonusdamage[this.rank],
             cooldown: this._cooldown,
             castTime: this._castTime
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 
     public onImpact(effect:spellEffect, timeElsaped:number):void {
-        if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
-            let dmgMod = 1.0;
-            let critMod = 0;
+        let dmgMod = 1.0;
+        let critMod = 0;
 
-            let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
-            if (chillingRadiance)
-                critMod = 0.02 + (0.03 * chillingRadiance.rank);
+        let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
+        if (chillingRadiance)
+            critMod = 0.02 + (0.03 * chillingRadiance.rank);
 
-            if (this.owner.hasAura(this._iceboltFreeze))
-                dmgMod = 1.5; //50% damage increase when target is frozen
+        if (this.owner.hasAura(this._iceboltFreeze))
+            dmgMod = 1.5; //50% damage increase when target is frozen
 
-            this.dealDamage(effect, timeElsaped, dmgMod, critMod); 
-        }
+        super.onImpact(effect, timeElsaped, dmgMod, critMod);
     }
 }
 
@@ -235,7 +230,7 @@ export class Enchant extends Ability {
             throw new Error(`APL DATA Error - ${this.name} - Rank is not in range`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -243,8 +238,7 @@ export class Enchant extends Ability {
             castTime: this._castTime
         }
 
-        this.manaCost = this._manaCost[rank];
-        this.ignoreAura = false;
+        this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -294,7 +288,7 @@ export class ArcticAura extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -302,8 +296,7 @@ export class ArcticAura extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
-        this.ignoreAura = false;
+        this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -352,7 +345,7 @@ export class HypothermicFrenzy extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -360,7 +353,6 @@ export class HypothermicFrenzy extends Ability {
             castTime: 0
         }
 
-        this.ignoreAura = false;
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -400,7 +392,7 @@ export class HypothermicFrenzy extends Ability {
         // reset cooldown on Icicle Orb
         let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
         if (icicleOrb)
-            icicleOrb.reduceCoolown(-1);
+            icicleOrb.resetCooldown();
 
         this.applyAura(auraEffect);
     }
@@ -423,7 +415,7 @@ export class IceShield extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -431,8 +423,8 @@ export class IceShield extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
-        this.ignoreAura = true;
+        this.manaCost = this._manaCost[this.rank];
+        this.forced = true;
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -460,6 +452,7 @@ export class IceShield extends Ability {
         } 
 
         this.applyAura(auraEffect); */
+        return;
     }
 }
 
@@ -478,7 +471,7 @@ export class Teleport extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -486,7 +479,9 @@ export class Teleport extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
+
+    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
 }

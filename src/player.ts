@@ -2,10 +2,11 @@ import Ability, { abilityList, abilityData } from "./ability.js";
 import Aura from "./aura.js";
 import Main from "./main.js";
 import Simulation from "./simulation.js";
-import {  __calcHasteBonus, __random } from "./misc.js";
+import {  Placeholders, __calcHasteBonus, __random } from "./misc.js";
 
 import * as MageScripts from "./scripts/mage.js";
 import * as WarriorScripts from "./scripts/warrior.js";
+import * as ArcherScripts from "./scripts/archer.js";
 import * as DefaultScripts from "./scripts/default.js";
 
 export interface statTypes {
@@ -86,7 +87,7 @@ export default class Player {
 
         abilityList.forEach((ability:any) => {
             /** Search for ability class / script and add it into list */
-            let abilityScript:Ability|undefined = this.getAbilityById(ability);
+            let abilityScript:Ability|undefined = this._getAbilityScripts(ability);
             if (abilityScript)
                 this._abilityList.push(abilityScript);
         });
@@ -172,7 +173,7 @@ export default class Player {
             return;
         }
 
-        if (ability.applyAuraId && !ability.ignoreAura)
+        if (ability.applyAuraId && !ability.forced)
             if (this.hasAura(ability.applyAuraId)) {
                 this.doCast(timeElsaped, queIndex + 1);
                 return;
@@ -196,15 +197,18 @@ export default class Player {
     }
 
     public commitAutoattack(timeElsaped:number):void {
-        if (this.isCasting)
-            return;
+        //if (this.isCasting)
+        //    return;
         
         this._autoAttackTimmer = Math.round(__calcHasteBonus(1000 / this.attackSpeedStat, this.hasteStat)) * 100;
-        this.dealDamage(0, 100, Math.random() > this.criticalStat ? 1 : 2, {timeElsaped: timeElsaped, name: "Auto Attack"});
+        if (Math.random() < this.criticalStat)
+            this.dealDamage(0, 100, {isCrit: true, timeElsaped: timeElsaped, name: "Auto Attack"});
+        else
+            this.dealDamage(0, 100, {timeElsaped: timeElsaped, name: "Auto Attack"});
     }
 
     /** There should be better way to connect enums with class rework in future */
-    public getAbilityById(abilityData:abilityData):Ability|undefined {
+    private _getAbilityScripts(abilityData:abilityData):Ability|undefined {
         switch (abilityData.id) {
             /** Warrior abilites */
             case abilityList.WAR_SLASH: 
@@ -244,6 +248,25 @@ export default class Player {
                 return new MageScripts.IceShield(abilityData, this);
             case abilityList.MAGE_TELEPORT:
                 return new MageScripts.Teleport(abilityData, this);
+            /** Archer Abilites */
+            case abilityList.ARCHER_SWIFT_SHOT: 
+                return new ArcherScripts.SwiftShot(abilityData, this);
+            case abilityList.ARCHER_PRECISE_SHOT: 
+                return new ArcherScripts.PreciseShot(abilityData, this);
+            case abilityList.ARCHER_DASH: 
+                return new ArcherScripts.Dash(abilityData, this);
+            case abilityList.ARCHER_SERPENT_ARROWS:
+                return new ArcherScripts.SerpentArrows(abilityData, this);
+            case abilityList.ARCHER_POISON_ARROWS:
+                return new ArcherScripts.PoisonArrows(abilityData, this);
+            case abilityList.ARCHER_INVIGORATE:
+                return new ArcherScripts.Invigorate(abilityData, this);
+            case abilityList.ARCHER_PATHFINDING:
+                return new ArcherScripts.Pathfinding(abilityData, this);
+            case abilityList.ARCHER_CRANIAL_PUNCTURES:
+                return new ArcherScripts.CranialPunctures(abilityData, this);
+            case abilityList.ARCHER_TEMPORAL_DILATATION:
+                return new ArcherScripts.TemporalDilatation(abilityData, this);
             /** Default */
             case abilityList.MANA_POTION: 
                 return new DefaultScripts.ManaPotion(abilityData, this);
@@ -348,34 +371,46 @@ export default class Player {
      * doDamage function do calculations
      * @param baseDamage - Flat value of Damage 
      * @param bonusDamage - %Damage based on min-max (Auras are counting average between min and max)
+     * !! Always return base damage before reductions & modifications (I.e crit etc)
      */
-    public dealDamage(baseDamage:number, bonusDamage:number, modifier:number, {timeElsaped, name}, isAura:boolean = false):void {
-        let formular:number = Math.round(baseDamage + __random(this.mindamageStat, this.maxdamageStat) * bonusDamage / 100);
+    public dealDamage(baseDamage:number, bonusDamage:number, {timeElsaped, name, isCrit = false}, modifier:number = 1, isAura:boolean = false):number {
+        let damage:number = Math.floor(baseDamage + __random(this.mindamageStat, this.maxdamageStat) * bonusDamage / 100);
         if (isAura)
-            formular = Math.round(baseDamage + (this.mindamageStat + this.maxdamageStat) / 2 * bonusDamage / 100);
+            damage = Math.floor(baseDamage + bonusDamage);
 
-        formular = modifier > 0 ? formular * modifier : formular;
+        damage = modifier > 0 ? damage * modifier : damage;
 
-        formular = this.damageReductions(formular);
-    
+        let formular:number = this.damageReductions(damage);
+
+        if (isCrit)
+            formular *= Placeholders.CRITICAL_DAMAGE;
+
         this.damageDone += formular;
 
         if (this.id == 0 && Simulation.debug)
-            if (modifier >= 2) /** Crit */
+            if (isCrit) /** Crit */
                 Main.addCombatLog(`${name} - Damage Done: ${formular} CRIT`, timeElsaped);
             else
                 Main.addCombatLog(`${name} - Damage Done: ${formular}`, timeElsaped);
+
+        return damage;
     }
 
     public damageReductions(damage:number):number {
-        let reducedDamage:number = damage;
-        reducedDamage = reducedDamage * (1 - Simulation.mitigation);
+        damage = damage * (1 - Simulation.mitigation);
 
-        return Math.floor(reducedDamage);
+        return Math.floor(damage);
     }
 
     public regenerateMana(mana:number):void {
         this.mana += mana;
+        if (this.mana > this.maxMana)
+            this.mana = this.maxMana;
+    }
+
+    public regenerateManaPercentage(manaPercentage:number, remainManaPercentage:number = 0):void {
+        this.mana += Math.floor(this.maxMana * manaPercentage);
+        this.mana += Math.floor(this.mana * remainManaPercentage);
         if (this.mana > this.maxMana)
             this.mana = this.maxMana;
     }

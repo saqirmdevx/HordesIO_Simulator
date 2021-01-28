@@ -19,15 +19,15 @@ export class Slash extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
-            bonusDamage: this._bonusdamage[rank],
+            bonusDamage: this._bonusdamage[this.rank],
             cooldown: 0,
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 }
@@ -39,8 +39,6 @@ export class CrescentSwipe extends Ability {
     private _manaCost:Array<number> = [0, 4, 6, 8, 10, 12];
     private _cooldown:number = 6000;
 
-    private _applyAura:abilityList = abilityList.WAR_CENTRIFUGAL_LACERATION_AURA;
-
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Crescent Swipe ${abilityData.rank}`;
@@ -51,33 +49,36 @@ export class CrescentSwipe extends Ability {
         this.isAoe = true;
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
-            bonusDamage: this._bonusdamage[rank],
+            bonusDamage: this._bonusdamage[this.rank],
             cooldown: this._cooldown,
             castTime: 0,
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 
     public onImpact(effect:spellEffect, timeElsaped:number):void {
+        let damage:number|void = super.onImpact(effect, timeElsaped);
+
+        if (!damage)
+            return;
+
         let centrifugalLaceration:Ability|undefined = this.owner.getAbility(abilityList.WAR_CENTRIFUGAL_LACERATION);
         if (centrifugalLaceration) {
-            this.ignoreAura = true;
-            this.applyAuraId = this._applyAura; // only for condition
-
             let auraEffect:auraEffect = {
-                id: this._applyAura,
+                id: CentrifugalLaceration.aura,
                 name: "Centrifugal Laceration",
                 hasDamageEffect: true,
                 damageEffect: {
                     baseDamage: 0,
-                    bonusDamage: this._bonusdamage[this.rank] * CentrifugalLaceration.bonusDamage[centrifugalLaceration.rank],
+                    bonusDamage: Math.floor(damage * CentrifugalLaceration.bonusDamage[centrifugalLaceration.rank]),
                     tickIndex: 1.5, // every 1.5sec
                     isAoe: true,
+                    triggeredDamage: true
                 },
                 duration: CentrifugalLaceration.duration,
                 rank: centrifugalLaceration.rank,
@@ -87,9 +88,6 @@ export class CrescentSwipe extends Ability {
 
             this.applyAura(auraEffect);
         }
-
-        if (effect.baseDamage > 0 || effect.bonusDamage > 0)
-            this.dealDamage(effect, timeElsaped);
     }
 }
 
@@ -97,6 +95,8 @@ export class CentrifugalLaceration extends Ability {
     // Placeholder values per rank
     public static bonusDamage:Array<number> = [0, 0.125, 0.157, 0.189, 0.221, 0.253]; // % Based on min/max damage
     public static duration:number = 10000;
+
+    public static aura:abilityList = abilityList.WAR_CENTRIFUGAL_LACERATION_AURA;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -109,7 +109,6 @@ export class CentrifugalLaceration extends Ability {
 
 export class ArmorReinforcement extends Ability {
     // Placeholder values per rank
-    public _applyAura:abilityList = abilityList.WAR_ARMOR_REINFORCEMENT_AURA;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -119,7 +118,7 @@ export class ArmorReinforcement extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
         /*let auraEffect:auraEffect = {
-            id: this._applyAura,
+            id: this.id,
             bonusStats: {
                 manaregen:0,
                 block:0,
@@ -157,7 +156,7 @@ export class UnholyWarcry extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -165,8 +164,7 @@ export class UnholyWarcry extends Ability {
             castTime: 0,
         }
 
-        this.manaCost = this._manaCost[rank];
-        this.ignoreAura = false;
+        this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -211,7 +209,7 @@ export class Taunt extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -219,9 +217,11 @@ export class Taunt extends Ability {
             castTime: 0,
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
+
+    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class Charge extends Ability {
@@ -238,7 +238,7 @@ export class Charge extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -246,9 +246,11 @@ export class Charge extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
+
+    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class CrusadersCourage extends Ability {
@@ -267,7 +269,7 @@ export class CrusadersCourage extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -275,8 +277,7 @@ export class CrusadersCourage extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
-        this.ignoreAura = false;
+        this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -324,7 +325,7 @@ export class Bulwark extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -332,9 +333,8 @@ export class Bulwark extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         this.hasGlobal = false;
-        this.ignoreAura = false;
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
@@ -380,7 +380,7 @@ export class ColossalReconstruction extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -388,10 +388,12 @@ export class ColossalReconstruction extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         this.hasGlobal = false;
         return effect;
     }
+
+    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class Tempering extends Ability {
@@ -408,7 +410,7 @@ export class Tempering extends Ability {
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
 
-    public prepare(rank:number):spellEffect {
+    public prepare():spellEffect {
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -416,7 +418,9 @@ export class Tempering extends Ability {
             castTime: 0
         }
 
-        this.manaCost = this._manaCost[rank];
+        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
+
+    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
 }

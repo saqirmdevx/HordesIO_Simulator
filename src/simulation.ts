@@ -43,7 +43,7 @@ export default class Simulation {
         Main.resetVueData();
 
         // create players based on simulation
-        if (result.simulators > 0 && result.simulators <= 1000)
+        if (result.simulators > 0)
             for (let i = 0; i < result.simulators; i++)
                 this.playerList[i] = new Player(i, result.stats, result.mana, result.abilityList, result.abilityQueue, result.autoAttack);
 
