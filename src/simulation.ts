@@ -1,6 +1,7 @@
 import Main from "./main.js";
 import Player from "./player.js";
 import APLData from "./apl_script.js";
+import Enemy from "./enemy.js";
 
 export default class Simulation {
     private static _isActive = false;
@@ -47,6 +48,10 @@ export default class Simulation {
             for (let i = 0; i < result.simulators; i++)
                 this.playerList[i] = new Player(i, result.stats, result.mana, result.abilityList, result.abilityQueue, result.autoAttack);
 
+        if (result.targets > 0)
+            for (let i = 0; i < result.targets; i++)
+                Enemy.list[i] = new Enemy(i, this.mitigation);
+
         this.startTime = Date.now();
 
         // Locked timestep
@@ -62,11 +67,16 @@ export default class Simulation {
     private static _updateDmgTimmer:number = 1000;
     private static _simulation(updateTime:number, timeElsaped:number, chunk:number, simulationTime:number, callback:CallableFunction):void {
         let itr:number = 0;
+        let [players, targets] = [this.playerList.length, Enemy.list.length]
+
         while (itr < chunk)
         {
             itr++;
-            for (let i = 0; i < this.playerList.length; i++)
+            for (let i = 0; i < players; i++)
                 this.playerList[i].doUpdate(updateTime, timeElsaped);
+
+            for (let i = 0; i < targets; i++)
+                Enemy.list[i].doUpdate(updateTime, timeElsaped);
 
             timeElsaped += updateTime;
             if (timeElsaped >= simulationTime) {
@@ -94,6 +104,7 @@ export default class Simulation {
 
         // remove all players from list
         this.playerList.splice(0, this.playerList.length);
+        Enemy.list.splice(0, Enemy.list.length);
 
         this._isActive = false;
         Main.vue.loading = false;

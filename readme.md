@@ -10,6 +10,8 @@ This is simulation for <a href="https://hordes.io"> Hordes.Io </a>
 
 [Mage-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/mage.siml)
 
+[Archer-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/archer.siml)
+
 
 ## How APL Works? 
 
@@ -71,6 +73,8 @@ ability.condition.mana!=(mana%) # If player has less % mana than (mana%)
 
 ability.condition.cooldown=(abilityId) # If player has cooldown on (abilityId) this ability will be casted
 ability.condition.cooldown!=(abilityId) # If player has no cooldown on (abilityId) this ability will be casted
+
+ability.forced=1 # Value between 1 and 0 (Boolean) - If ability is forced to cast even if aura is up
 ```
 More conditions will be added in future.
 
@@ -89,7 +93,6 @@ abilityQue.add=20 #Icebolt - Will be casted 4.
 abilityQue.add=25 #Hypothermic Frenzy - Will be casted 5.
 abilityQue.add=20 #Icebolt - Will be casted 6. !!! This is valid syntax
 abilityQue.add=21 #Icicle Orb - Will be casted 7. and repeat from 1. ability (enchant)
-
 ```
 
 !!! Abilites like Enchant, Arctic Aura, unholy Warcry will be casted only if aura expires. !!!
@@ -102,10 +105,10 @@ Name - Id
 ```code
     Slash = 0
     Crescent Swipe = 1
-    
+
     Unholy Warcry = 2
     Unholy Warcry Aura = 1001
-    
+
     Centrifugal Laceration = 3
     Centrifugal Laceration Aura = 1002
 
@@ -114,7 +117,7 @@ Name - Id
 
     Taunt = 5
     Charge = 6
-    
+
     Crusader Courage = 7
     Crusader Courage Aura = 1004
 
@@ -123,7 +126,7 @@ Name - Id
     Bulwark Damage Aura = 1006
 
     Colossal Reconstruction = 9
-    
+
     Tempering = 10
 ```
 
@@ -156,6 +159,7 @@ Name - Id
 ```
 
 ### Archer: 
+Name - Id 
 ```code
     Swift Shot = 28
     Swift Shot - Instant Aura = 3000 /** Applied by precise shot */

@@ -1,0 +1,87 @@
+#Default - Testing simulation block
+# - is used for comment line
+
+debug=1
+slowmotion=0 # Simulation in real time
+simulationtime=300000 # 5minute battle
+
+targets=3
+simulators=300
+mitigation=0.21640152412620914 #0.21640152412620914 damageReduction in %
+
+#Stats of player (Mana is not properity of stat)
+autoattack=1
+mana=322
+stats.manaregen=7
+stats.block=0
+stats.mindamage=184
+stats.maxdamage=256
+stats.haste=0.25
+stats.critical=0.45
+stats.attackSpeed=24
+
+# -- abilityList --
+#swiftShot
+ability.id=28
+ability.rank=5
+ability=push()
+
+#PreciseShot
+ability.id=29
+ability.rank=5
+ability=push()
+
+#Dash
+ability.id=30
+ability.rank=1
+ability.condition.cooldown=29
+ability=push()
+
+#Invigorate
+ability.id=33
+ability.rank=5
+ability=push()
+
+#Serpent Arrows
+ability.id=31
+ability.rank=5
+ability=push()
+
+#Poison Arrows
+ability.id=32
+ability.rank=5
+ability=push()
+
+#pathfinding
+ability.id=34
+ability.rank=4
+ability=push()
+
+#Cranial Punctures
+ability.id=35
+ability.rank=4
+ability=push()
+
+#Temporal Dilatation
+ability.id=36
+ability.rank=4
+ability=push()
+
+#Mana Potion
+ability.id=5001
+ability.rank=3
+ability.condition.mana!=25
+ability=push()
+
+#add abilites queue to cast in order
+abilityQue.add=36
+abilityQue.add=34
+abilityQue.add=33
+
+abilityQue.add=29
+abilityQue.add=30
+abilityQue.add=29
+abilityQue.add=28
+
+abilityQue.add=5001
+

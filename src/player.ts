@@ -1,8 +1,9 @@
 import Ability, { abilityList, abilityData } from "./ability.js";
-import Aura from "./aura.js";
+import Aura, { auraEffect } from "./aura.js";
 import Main from "./main.js";
 import Simulation from "./simulation.js";
-import {  Placeholders, __calcHasteBonus, __random } from "./misc.js";
+import { __calcHasteBonus, __random } from "./misc.js";
+import Enemy from "./enemy.js"
 
 import * as MageScripts from "./scripts/mage.js";
 import * as WarriorScripts from "./scripts/warrior.js";
@@ -60,6 +61,8 @@ export default class Player {
     public damageTaken:number = 0;
 
     public hasAutoattack:boolean;
+
+    public isPlayer:boolean = true;
 
     constructor(id:number, stats:statTypes, mana:number, abilityList:Array<any>, abilityQue:Array<number>, hasAutoattack:boolean = false) {
         this.id = id;
@@ -151,7 +154,7 @@ export default class Player {
     public doCast(timeElsaped:number, queIndex:number):void {
         if (this._jumps > this._abilityQueue.length - 1)
             return;
-        
+
         this._jumps++;
 
         if (queIndex > this._abilityQueue.length - 1)
@@ -197,14 +200,13 @@ export default class Player {
     }
 
     public commitAutoattack(timeElsaped:number):void {
-        //if (this.isCasting)
-        //    return;
-        
         this._autoAttackTimmer = Math.round(__calcHasteBonus(1000 / this.attackSpeedStat, this.hasteStat)) * 100;
+        let damageDone:number = Math.floor(__random(this.mindamageStat, this.maxdamageStat));
+
         if (Math.random() < this.criticalStat)
-            this.dealDamage(0, 100, {isCrit: true, timeElsaped: timeElsaped, name: "Auto Attack"});
+            this.dealDamage(Enemy.list[0], damageDone, {isCrit: true, timeElsaped: timeElsaped, name: "Auto Attack"});
         else
-            this.dealDamage(0, 100, {timeElsaped: timeElsaped, name: "Auto Attack"});
+            this.dealDamage(Enemy.list[0], damageDone, {timeElsaped: timeElsaped, name: "Auto Attack"});
     }
 
     /** There should be better way to connect enums with class rework in future */
@@ -289,10 +291,6 @@ export default class Player {
             return true;
         return false;
     }
-
-    public applyAura(aura:Aura):void {
-        this._activeAuras.push(aura);
-    }
     
     public getAuraById(auraId:number):Aura|undefined {
         let found = this._activeAuras.find((aura:Aura) => aura.id == auraId as number);
@@ -339,9 +337,7 @@ export default class Player {
         return (this._baseStats.attackSpeed + this._bonusStats.attackSpeed) * (1 + this._bonusStatsPercentage.attackSpeed);
     }
 
-    get isCasting():boolean {
-        return this.castTime > 0;
-    }
+    get isCasting():boolean { return this.castTime > 0 };
 
     /** Stat bonuses */
     public addBonusStat(stat:string, value:number, percentage:boolean = false):void {
@@ -366,40 +362,34 @@ export default class Player {
         }
     }
 
-    //*** Player damage function */
+    //*** Player apply function */
+    public applyAura(effect:auraEffect):void {
+        let findAura:Aura|undefined = this.getAuraById(effect.id);
+        if (findAura) {
+            findAura.reapply(effect);
+            return;
+        }
+        let aura:Aura;
+        if (effect.script)
+            aura = new effect.script(effect, this);
+        else
+            aura = new Aura(effect, this);
+
+        this._activeAuras.push(aura);
+    }
+
     /**
      * doDamage function do calculations
      * @param baseDamage - Flat value of Damage 
      * @param bonusDamage - %Damage based on min-max (Auras are counting average between min and max)
      * !! Always return base damage before reductions & modifications (I.e crit etc)
      */
-    public dealDamage(baseDamage:number, bonusDamage:number, {timeElsaped, name, isCrit = false}, modifier:number = 1, isAura:boolean = false):number {
-        let damage:number = Math.floor(baseDamage + __random(this.mindamageStat, this.maxdamageStat) * bonusDamage / 100);
-        if (isAura)
-            damage = Math.floor(baseDamage + bonusDamage);
+    public dealDamage(target:Enemy, damageDone:number, {timeElsaped, name, isCrit = false}, modifier:number = 1, isAura:boolean = false):number {
+        let damage:number = modifier > 0 ? damageDone * modifier : damageDone;
 
-        damage = modifier > 0 ? damage * modifier : damage;
-
-        let formular:number = this.damageReductions(damage);
-
-        if (isCrit)
-            formular *= Placeholders.CRITICAL_DAMAGE;
-
-        this.damageDone += formular;
-
-        if (this.id == 0 && Simulation.debug)
-            if (isCrit) /** Crit */
-                Main.addCombatLog(`${name} - Damage Done: ${formular} CRIT`, timeElsaped);
-            else
-                Main.addCombatLog(`${name} - Damage Done: ${formular}`, timeElsaped);
+        target.damageTaken(damage, this, {timeElsaped, name, isCrit});
 
         return damage;
-    }
-
-    public damageReductions(damage:number):number {
-        damage = damage * (1 - Simulation.mitigation);
-
-        return Math.floor(damage);
     }
 
     public regenerateMana(mana:number):void {

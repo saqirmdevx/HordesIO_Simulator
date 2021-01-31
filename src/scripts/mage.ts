@@ -3,6 +3,7 @@ import Player from "../player.js";
 
 import Aura, { auraEffect } from "../aura.js";
 import * as AuraScripts from "../aura_scripts.js";
+import Enemy from "../enemy.js";
 
 // /*** Mage abilites */
 export class ChillingRadiance extends Ability {
@@ -25,7 +26,6 @@ export class ChillingRadiance extends Ability {
     }
 
     public prepare():spellEffect {
-
         let effect:spellEffect = {
             baseDamage: 0,
             bonusDamage: 0,
@@ -33,6 +33,7 @@ export class ChillingRadiance extends Ability {
             castTime: 0,
         }
 
+        this.isAoe = true;
         this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
         return effect;
@@ -43,22 +44,21 @@ export class ChillingRadiance extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onImpact(target:Enemy):void {
         // start with 3 stacks of instabolt
         let auraEffect:auraEffect = {
             id: this._applyAura,
-            name: "Chilling Radiance",
+            name: "Chilling Radiance - Debuff",
             hasDamageEffect: true,
             damageEffect: {
                 baseDamage: this._baseDamage,
                 bonusDamage: this._bonusDamage[this.rank],
                 tickIndex: 1, // every 1sec
-                isAoe: true,
             },
             duration: this._duration[this.rank],
             rank: this.rank
         }
-        this.applyAura(auraEffect);
+        target.applyAura(auraEffect, this.owner);
     }
 }
 
@@ -73,6 +73,7 @@ export class IceBolt extends Ability {
     private _iceboltFreeze:abilityList = abilityList.MAGE_ICEBOLT_FREEZE;
     private _iceboltInstant:abilityList = abilityList.MAGE_ICEBOLT_INSTANT;
     private _chillingRadiance:abilityList = abilityList.MAGE_CHILLINGRADIANCE_AURA;
+    private _icicleOrb:Ability|undefined;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -93,13 +94,14 @@ export class IceBolt extends Ability {
             rank: this.rank,
             script: AuraScripts.MageIceboltInstant
         }
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 
     public prepare():spellEffect {
         let castTime:number = this._castTime;
         let iceboltInstant:Aura|undefined = this.owner.getAuraById(this._iceboltInstant);
-
+        this._icicleOrb = this._icicleOrb ?? this.owner.getAbility(abilityList.MAGE_ICICLEORB);
+    
         if (iceboltInstant && iceboltInstant.getStacks() > 0) {
             iceboltInstant.removeStack();
             castTime = 0;
@@ -113,28 +115,28 @@ export class IceBolt extends Ability {
         }
 
         this.manaCost = this._manaCost[this.rank];   
+
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void {
-        let iceboltSlowAura:Aura|undefined = this.owner.getAuraById(this._iceboltSlow);
-        let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
-
+    protected doEffect(target:Enemy, effect:spellEffect, timeElsaped:number):number {
         let dmgMod:number = 1.0;
         let critMod:number = 0;
 
-        if (icicleOrb)
-            icicleOrb.reduceCoolown(500);
+        this._icicleOrb?.reduceCoolown(500);
 
-        let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance);
+        let chillingRadiance:Aura|undefined = target.getAuraById(this._chillingRadiance);
         if (chillingRadiance)
             critMod = 0.01 + (0.03 * chillingRadiance.rank);
 
-        if (this.owner.hasAura(this._iceboltFreeze))
+        if (target.hasAura(this._iceboltFreeze, this.owner))
             dmgMod = 1.5; //50% damage increase when target is frozen
+    
+        return super.doEffect(target, effect, timeElsaped, {damageMod: dmgMod, critMod: critMod});
+    }
 
-        super.onImpact(effect, timeElsaped, dmgMod, critMod);
-
+    protected onImpact(target:Enemy):void {
+        let iceboltSlowAura:Aura|undefined = this.owner.getAuraById(this._iceboltSlow);
         if (iceboltSlowAura && iceboltSlowAura.getStacks() >= 4) {
             iceboltSlowAura.onRemove(); // Remove slow aura
 
@@ -146,9 +148,9 @@ export class IceBolt extends Ability {
                 rank: this.rank
             }
             // Apply freeze if target has 4 stacks
-            this.applyAura(auraEffect);
+            target.applyAura(auraEffect, this.owner);
         }
-        else if (!this.owner.hasAura(this._iceboltFreeze)) { 
+        else if (!target.hasAura(this._iceboltFreeze, this.owner)) { 
             let auraEffect:auraEffect = {
                 id: this._iceboltSlow,
                 name: "Icebolt Slow",
@@ -158,7 +160,8 @@ export class IceBolt extends Ability {
                 maxStacks: 5,
                 rank: this.rank
             }
-            this.applyAura(auraEffect);
+            /*** !!! We apply this for owner to reduce array size of enemy (500 simulators apply 500 auras at once) */
+            this.owner.applyAura(auraEffect);
         }
     }
 }
@@ -196,18 +199,18 @@ export class IcicleOrb extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void {
+    protected doEffect(target:Enemy, effect:spellEffect, timeElsaped:number):number {
         let dmgMod = 1.0;
         let critMod = 0;
 
-        let chillingRadiance:Aura|undefined = this.owner.getAuraById(this._chillingRadiance)
+        let chillingRadiance:Aura|undefined = target.getAuraById(this._chillingRadiance)
         if (chillingRadiance)
             critMod = 0.02 + (0.03 * chillingRadiance.rank);
 
-        if (this.owner.hasAura(this._iceboltFreeze))
+        if (target.hasAura(this._iceboltFreeze, this.owner))
             dmgMod = 1.5; //50% damage increase when target is frozen
 
-        super.onImpact(effect, timeElsaped, dmgMod, critMod);
+        return super.doEffect(target, effect, timeElsaped, {damageMod: dmgMod, critMod: critMod});
     }
 }
 
@@ -248,7 +251,7 @@ export class Enchant extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onCasted():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
             name: "Enchant",
@@ -266,7 +269,7 @@ export class Enchant extends Ability {
             rank: this.rank
         }
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }
 
@@ -306,7 +309,7 @@ export class ArcticAura extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onCasted():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
             name: "Arctic Aura",
@@ -324,7 +327,7 @@ export class ArcticAura extends Ability {
             rank: this.rank
         }
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }
 
@@ -362,7 +365,7 @@ export class HypothermicFrenzy extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onCasted():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
             name: "Hypothermic Frenzy",
@@ -391,10 +394,9 @@ export class HypothermicFrenzy extends Ability {
 
         // reset cooldown on Icicle Orb
         let icicleOrb:Ability|undefined = this.owner.getAbility(abilityList.MAGE_ICICLEORB);
-        if (icicleOrb)
-            icicleOrb.resetCooldown();
+        icicleOrb?.resetCooldown();
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }
 
@@ -434,24 +436,7 @@ export class IceShield extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
-        /* let auraEffect:auraEffect = {
-            id: this._applyAura,
-            bonusStats: {
-                manaregen:0,
-                defense:0,
-                block:0,
-                mindamage: 0,
-                maxdamage: 0,
-                critical: 0,
-                haste:0
-            },
-            hasDamageEffect: false,
-            duration: this._duration,
-            rank: this.rank
-        } 
-
-        this.applyAura(auraEffect); */
+    public onCasted():void {
         return;
     }
 }
@@ -483,5 +468,5 @@ export class Teleport extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
+    public onCasted(effect:spellEffect, timeElsaped:number):void { return; }
 }

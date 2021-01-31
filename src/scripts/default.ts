@@ -38,7 +38,7 @@ export class ManaPotion extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onCasted():void {
         // start with 3 stacks of instabolt
         let auraEffect:auraEffect = {
             id: this._applyAura,
@@ -48,6 +48,6 @@ export class ManaPotion extends Ability {
             rank: this.rank,
             script: AuraScript.ManaPotion
         }
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }

@@ -3,6 +3,7 @@ import Player from "../player.js";
 
 import { auraEffect } from "../aura.js";
 import * as AuraScripts from "../aura_scripts.js";
+import Enemy from "../enemy.js";
 
 /*** Warrior abilites */
 export class Slash extends Ability {
@@ -39,6 +40,8 @@ export class CrescentSwipe extends Ability {
     private _manaCost:Array<number> = [0, 4, 6, 8, 10, 12];
     private _cooldown:number = 6000;
 
+    private _centrifugalLaceration:Ability|undefined;
+
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Crescent Swipe ${abilityData.rank}`;
@@ -50,6 +53,8 @@ export class CrescentSwipe extends Ability {
     }
 
     public prepare():spellEffect {
+        this._centrifugalLaceration = this._centrifugalLaceration ?? this.owner.getAbility(abilityList.WAR_CENTRIFUGAL_LACERATION);
+
         let effect:spellEffect = {
             baseDamage: this._baseDamage,
             bonusDamage: this._bonusdamage[this.rank],
@@ -61,32 +66,28 @@ export class CrescentSwipe extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void {
-        let damage:number|void = super.onImpact(effect, timeElsaped);
-
-        if (!damage)
+    protected onImpact(target:Enemy, damageDone:number, effect:spellEffect, timeElsaped:number):void {
+        if (!damageDone)
             return;
 
-        let centrifugalLaceration:Ability|undefined = this.owner.getAbility(abilityList.WAR_CENTRIFUGAL_LACERATION);
-        if (centrifugalLaceration) {
+        if (this._centrifugalLaceration) {
             let auraEffect:auraEffect = {
                 id: CentrifugalLaceration.aura,
                 name: "Centrifugal Laceration",
                 hasDamageEffect: true,
                 damageEffect: {
                     baseDamage: 0,
-                    bonusDamage: Math.floor(damage * CentrifugalLaceration.bonusDamage[centrifugalLaceration.rank]),
+                    bonusDamage: Math.floor(damageDone * CentrifugalLaceration.bonusDamage[this._centrifugalLaceration.rank]),
                     tickIndex: 1.5, // every 1.5sec
-                    isAoe: true,
                     triggeredDamage: true
                 },
                 duration: CentrifugalLaceration.duration,
-                rank: centrifugalLaceration.rank,
+                rank: this._centrifugalLaceration.rank,
                 isStackable: true,
                 maxStacks: 3
             }
 
-            this.applyAura(auraEffect);
+            target.applyAura(auraEffect, this.owner);
         }
     }
 }
@@ -116,24 +117,6 @@ export class ArmorReinforcement extends Ability {
 
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
-
-        /*let auraEffect:auraEffect = {
-            id: this.id,
-            bonusStats: {
-                manaregen:0,
-                block:0,
-                mindamage: 0,
-                maxdamage: 0,
-                critical:0,
-                haste:0,
-                attackSpeed: 0,
-            },
-            hasDamageEffect: false,
-            duration: -1,
-            rank: this.rank
-        }
-    
-        this.applyAura(auraEffect);*/
     }
 }
 
@@ -174,7 +157,7 @@ export class UnholyWarcry extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onCasted():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
             name: "Unholy Warcry",
@@ -192,7 +175,7 @@ export class UnholyWarcry extends Ability {
             rank: this.rank
         }
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }
 
@@ -221,7 +204,7 @@ export class Taunt extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
+    public onCasted(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class Charge extends Ability {
@@ -250,7 +233,7 @@ export class Charge extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
+    public onCasted(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class CrusadersCourage extends Ability {
@@ -287,24 +270,8 @@ export class CrusadersCourage extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
-        /*let auraEffect:auraEffect = {
-            id: this._applyAura,
-            bonusStats: {
-                manaregen:0,
-                block:0,
-                mindamage: 0,
-                maxdamage: 0,
-                critical:0,
-                haste:0,
-                attackSpeed: 0,
-            },
-            hasDamageEffect: false,
-            duration: this._duration,
-            rank: this.rank
-        }
-
-        this.applyAura(auraEffect);*/
+    public onCasted():void {
+       return;
     }
 }
 
@@ -344,7 +311,7 @@ export class Bulwark extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onCasted():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
             name: "Bulwark",
@@ -363,7 +330,7 @@ export class Bulwark extends Ability {
             script: AuraScripts.WarBulwark
         }
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }
 
@@ -393,7 +360,7 @@ export class ColossalReconstruction extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
+    public onCasted(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class Tempering extends Ability {
@@ -422,5 +389,5 @@ export class Tempering extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
+    public onCasted(effect:spellEffect, timeElsaped:number):void { return; }
 }

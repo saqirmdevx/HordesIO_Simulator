@@ -1,7 +1,7 @@
 import Player from "./player.js";
 import Simulation from "./simulation.js";
 import Main from "./main.js";
-import Aura, { auraEffect } from "./aura.js";
+import Enemy, {EnemyListShuffle} from "./enemy.js";
 
 import { Placeholders, __calcHasteBonus, __random } from "./misc.js";
 
@@ -139,6 +139,14 @@ export default abstract class Ability {
         this._conditions = abilityData.condition;
     }
 
+    public doUpdate(diff:number, timeElsaped:number):void {
+        if (this.cooldown > 0)
+            this.cooldown -= diff;
+        
+        if (this.owner.castTime < diff && this._storeEffect)
+            this._done(this._storeEffect, timeElsaped);
+    }
+
     /**
      * This function is called before ability is invoked (casted)
      * @param rank - Ability rank
@@ -147,6 +155,7 @@ export default abstract class Ability {
 
     public cast(timeElsaped:number):void {
         let effect:spellEffect|undefined = this.prepare();
+
         if (!effect)
             return;
 
@@ -179,32 +188,47 @@ export default abstract class Ability {
         if (this.owner.id == 0 && Simulation.debug && !effect.baseDamage && !effect.bonusDamage)
             Main.addCombatLog(`Casted ${this.name}`, timeElsaped);
 
-        this.onImpact(effect, timeElsaped);
+        this.onCasted(effect, timeElsaped);
 
         this._storeEffect = null;
     }
 
-    public doUpdate(diff:number, timeElsaped:number):void {
-        if (this.cooldown > 0)
-            this.cooldown -= diff;
-        
-        if (this.owner.castTime < diff && this._storeEffect)
-            this._done(this._storeEffect, timeElsaped);
+    /** Before hit is sucessful */
+    protected onCasted(effect:spellEffect, timeElsaped:number, {damageMod = 1, critMod = 0, randomizeTarget = false} = {}):void {
+        /** If ability is AOE then deal damage multiple times */
+        if (this.isAoe && Simulation.targets > 1) {
+            let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
+            let enemyList = new EnemyListShuffle(Enemy.list, targets, true);
+            for (let i = 0; i < targets; i++) {
+                if (randomizeTarget) {
+                    this.doEffect(enemyList.next(), effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
+                    continue;
+                }
+                this.doEffect(Enemy.list[i], effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
+            }
+            return;
+        }
+        this.doEffect(Enemy.list[0], effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
     }
 
-    protected dealDamage(effect:spellEffect, timeElsaped:number, modifier:number, critModifier:number):number {
-        let baseDamage:number = effect.baseDamage;
-        let bonusDamage:number = effect.bonusDamage;
+    protected doEffect(target:Enemy, effect:spellEffect, timeElsaped:number, {damageMod = 1, critMod = 0} = {}):number {
+        let damageDone:number = Math.floor(effect.baseDamage + __random(this.owner.mindamageStat, this.owner.maxdamageStat) * effect.bonusDamage / 100);
 
-        let critChance:number = this.owner.criticalStat + critModifier;
-        let isCrit:boolean = false;
+        if (damageDone > 0) {
+            let critChance:number = this.owner.criticalStat + critMod;
+            let isCrit:boolean = false;
 
-        if (Math.random() < critChance){
-            this.onCrit();
-            isCrit = true; 
+            if (Math.random() < critChance){
+                this.onCrit();
+                isCrit = true; 
+            }
+
+            let damage = this.owner.dealDamage(target, damageDone, {timeElsaped: timeElsaped, name: this.name, isCrit: isCrit}, damageMod);
+            this.onImpact(target, damage, effect, timeElsaped);
+            return damage;
         }
-
-        return this.owner.dealDamage(baseDamage, bonusDamage, {timeElsaped: timeElsaped, name: this.name, isCrit: isCrit}, modifier);
+        this.onImpact(target, 0, effect, timeElsaped);
+        return 0;
     }
 
     public resetCooldown():void {
@@ -236,7 +260,7 @@ export default abstract class Ability {
                     else
                         result = true;
 
-                    if (this.owner.hasAura(condition.value))
+                    if (this.owner.hasAura(condition.value) || Enemy.list[0].hasAura(condition.value, this.owner))
                         result = !result;
                 })
             }
@@ -253,39 +277,13 @@ export default abstract class Ability {
         return result;
     }
 
-    /*** Hooks */
-    public applyAura(effect:auraEffect):void {
-        let findAura:Aura|undefined = this.owner.getAuraById(effect.id);
-        if (findAura) {
-            findAura.reapply(effect);
-            return;
-        }
-        let aura:Aura;
-        if (effect.script)
-            aura = new effect.script(effect, this.owner);
-        else
-            aura = new Aura(effect, this.owner);
-
-        this.owner.applyAura(aura);
-    }
-
+    /** Hooks */
     protected onCrit():void {
         return;
     }
 
-    protected onImpact(effect:spellEffect, timeElsaped:number, damageMod:number = 1, critMod:number = 0):number|void {
-        /** If ability is AOE then deal damage multiple times */
-        if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
-            if (this.isAoe && Simulation.targets > 1) {
-                let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
-                let damage:number = 0;
-                for (let i = 0; i < targets; i++)
-                    damage = this.dealDamage(effect, timeElsaped, damageMod, critMod);
-
-                return damage;
-            }
-            return this.dealDamage(effect, timeElsaped, damageMod, critMod);
-        }
+    /** When target is sucessfuly hitted */
+    protected onImpact(target:Enemy, damageDone:number, effect:spellEffect, timeElsaped:number):void {
         return;
     }
 }

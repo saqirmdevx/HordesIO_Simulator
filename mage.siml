@@ -5,20 +5,20 @@ debug=1
 slowmotion=0 # Simulation in real time
 simulationtime=300000 # 5minute battle
 
-targets=2
+targets=3
 simulators=300
-mitigation=0.25 #damageReduction in %
+mitigation=0.21640152412620914 #damageReduction in %
 
 #Stats of player (Mana is not properity of stat)
 autoattack=0
 mana=600
 stats.manaregen=8
-stats.block=0.1
+stats.block=0.15
 stats.mindamage=184
-stats.maxdamage=244
-stats.haste=0.3
-stats.critical=0.3
-stats.attackSpeed=0.0
+stats.maxdamage=256
+stats.haste=0.35
+stats.critical=0.25
+stats.attackSpeed=0
 
 # -- abilityList --
 #IceBolt
@@ -28,7 +28,7 @@ ability=push()
 
 #IcicleOrb
 ability.id=21
-ability.condition.aura=2002
+#ability.condition.aura=2002
 ability.rank=5
 ability=push()
 

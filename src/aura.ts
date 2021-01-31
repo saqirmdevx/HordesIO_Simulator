@@ -1,5 +1,5 @@
 import {abilityList } from "./ability.js"
-import Simulation from "./simulation.js";
+import Enemy from "./enemy.js";
 import { __calcHasteBonus } from "./misc.js";
 import Player, { statTypes } from "./player.js";
 
@@ -22,8 +22,6 @@ export interface auraDamageEffect {
     baseDamage: number,
     bonusDamage: number,
     tickIndex: number,
-    isAoe?: boolean,
-    maxTargets?: number,
     triggeredDamage?: boolean
 }
 
@@ -51,6 +49,8 @@ export default class Aura {
 
     public toRemove:boolean = false;
     public isPassive:boolean = false; /** passive auras */
+
+    public damageDeal:number = 0;
 
     public bonusStats:statTypes = {
         manaregen: 0,
@@ -86,7 +86,7 @@ export default class Aura {
         this.onApply(effect);
     }
 
-    public doUpdate(diff:number, timeElsaped:number):void {
+    public doUpdate(diff:number, timeElsaped:number, carrier?:Enemy):void {
         if (this.isPassive) return;
 
         this.duration -= diff;
@@ -98,45 +98,24 @@ export default class Aura {
             this.tickTime -= diff;
 
         if (this.tickTime < diff) {
-            if (this._effect.damageEffect)
-                this.dealDamage(this._effect.damageEffect, timeElsaped)
+            if (this._effect.damageEffect && carrier)
+                this.dealDamage(carrier, this._effect.damageEffect, timeElsaped)
         }
     }
 
-    public dealDamage(damageEffect:auraDamageEffect, timeElsaped:number, modifier:number = 1, critModifier:number = 0):void {
-        let baseDamage:number = damageEffect.baseDamage;
-        let bonusDamage:number; 
-        if (damageEffect.triggeredDamage)
-            bonusDamage = damageEffect.bonusDamage * this._stacks;
-        else
-            bonusDamage = ((this.owner.mindamageStat + this.owner.maxdamageStat) / 2 * damageEffect.bonusDamage / 100) * this._stacks;
-
+    public dealDamage(carrier:Enemy, damageEffect:auraDamageEffect, timeElsaped:number, modifier:number = 1, critModifier:number = 0):void {
         // resetTick timer
         this.tickTime = Math.round(__calcHasteBonus(damageEffect.tickIndex * 10, this.owner.hasteStat)) * 100;
 
-        let critChance:number = this.owner.criticalStat + this.owner.criticalStat + critModifier;
+        let critChance:number = this.owner.criticalStat + critModifier;
         let isCrit:boolean = false;
-
-        if (damageEffect.isAoe && Simulation.targets > 1) {
-            let maxTargets = damageEffect.maxTargets ? damageEffect.maxTargets : 20;
-            let targets:number = Simulation.targets > maxTargets ? maxTargets : Simulation.targets;
-            for (let i = 0; i < targets; i++) {
-                if (Math.random() < critChance) {
-                    this.onCrit();
-                    isCrit = true;
-                }
-
-                this.owner.dealDamage(baseDamage, bonusDamage, {isCrit: isCrit, timeElsaped: timeElsaped, name: this.name}, modifier, true);
-            }
-            return;
-        }
 
         if (Math.random() < critChance) {
             this.onCrit();
             isCrit = true;
         }
 
-        this.owner.dealDamage(baseDamage, bonusDamage, {isCrit: isCrit, timeElsaped: timeElsaped, name: this.name}, modifier, true);
+        this.owner.dealDamage(carrier, this.damageDeal, {isCrit: isCrit, timeElsaped: timeElsaped, name: this.name}, modifier, true);
     }
 
     /** If aura exists we apply aura and refresh uration */
@@ -144,9 +123,8 @@ export default class Aura {
         // reset Stats
         this.onReset();
 
-        if (this._isStackable)
-            if (this._stacks < this._maxStacks)
-                this._stacks += (effect.applyStacks ? effect.applyStacks : 1);
+        if (this._isStackable && this._stacks < this._maxStacks)
+            this._stacks += (effect.applyStacks ? effect.applyStacks : 1);
 
         this.onApply(effect);
     }
@@ -163,16 +141,25 @@ export default class Aura {
         if (this._stacks > this._maxStacks)
             this._stacks = this._maxStacks;
 
-        for (const stat in this.bonusStats) {
-            if (effect.bonusStats ) {
-                this.bonusStats[stat] = effect.bonusStats[stat];
-                this.owner.addBonusStat(stat, effect.bonusStats[stat]);
-            }
+        if (effect.bonusStats || effect.bonusStatsPercentage) {
+            for (const stat in this.bonusStats) {
+                if (effect.bonusStats ) {
+                    this.bonusStats[stat] = effect.bonusStats[stat];
+                    this.owner.addBonusStat(stat, effect.bonusStats[stat]);
+                }
 
-            if (effect.bonusStatsPercentage && effect.bonusStatsPercentage[stat] > 0) {
-                this.bonusStatsPercentage[stat] = effect.bonusStatsPercentage[stat];
-                this.owner.addBonusStat(stat, effect.bonusStatsPercentage[stat], true);
+                if (effect.bonusStatsPercentage && effect.bonusStatsPercentage[stat] > 0) {
+                    this.bonusStatsPercentage[stat] = effect.bonusStatsPercentage[stat];
+                    this.owner.addBonusStat(stat, effect.bonusStatsPercentage[stat], true);
+                }
             }
+        }
+
+        if (effect.damageEffect) {
+            if (effect.damageEffect.triggeredDamage)
+                this.damageDeal = effect.damageEffect.bonusDamage * this._stacks;
+            else
+                this.damageDeal = ((this.owner.mindamageStat + this.owner.maxdamageStat) / 2 * effect.damageEffect.bonusDamage / 100) * this._stacks;
         }
 
         // update Effect
@@ -182,13 +169,14 @@ export default class Aura {
 
     protected onReset():void {
         // reset bonus stats
-        for (const stat in this.bonusStats) {
-            if (this.bonusStats[stat] > 0)
-                this.owner.removeBonusStat(stat, this.bonusStats[stat])
+        if (this._effect.bonusStats || this._effect.bonusStatsPercentage)
+            for (const stat in this.bonusStats) {
+                if (this.bonusStats[stat] > 0)
+                    this.owner.removeBonusStat(stat, this.bonusStats[stat])
 
-            if (this.bonusStatsPercentage[stat] > 0)
-                this.owner.removeBonusStat(stat, this.bonusStatsPercentage[stat], true)
-        }
+                if (this.bonusStatsPercentage[stat] > 0)
+                    this.owner.removeBonusStat(stat, this.bonusStatsPercentage[stat], true)
+            }
     }
 
     public expire():void {
@@ -216,19 +204,8 @@ export default class Aura {
     }
 
     /** Hooks */
-    public applyAura(effect:auraEffect):void {
-        let findAura:Aura|undefined = this.owner.getAuraById(effect.id);
-        if (findAura) {
-            findAura.reapply(effect);
-            return;
-        }
-        let aura:Aura;
-        if (effect.script)
-            aura = new effect.script(effect, this.owner);
-        else
-            aura = new Aura(effect, this.owner);
-
-        this.owner.applyAura(aura);
+    public applyAura(target:Enemy|Player, effect:auraEffect):void {
+        target.applyAura(effect, this.owner);
     }
 
     public onCrit():void {

@@ -1,5 +1,6 @@
 import Ability, { spellEffect, abilityList, abilityData } from "../ability.js";
 import Player from "../player.js";
+import Enemy, { EnemyListShuffle } from "../enemy.js";
 
 import Aura, { auraEffect } from "../aura.js";
 import Simulation from "../simulation.js"
@@ -41,12 +42,12 @@ export class SwiftShot extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void {
+    protected onCasted(effect:spellEffect, timeElsaped:number):void {
         let mod = 1.0;
         if (this.owner.hasAura(abilityList.ARCHER_SWIFT_SHOT_INSTANT))
             mod = 1.5;
 
-        super.onImpact(effect, timeElsaped, mod);
+        super.onCasted(effect, timeElsaped, {damageMod: mod});
     }
 }
 
@@ -61,6 +62,7 @@ export class PreciseShot extends Ability {
     public static auraDuration:number = 6000;
 
     private _serpentArrows:Ability|undefined;
+    private _poisonArrows:Ability|undefined;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -73,7 +75,8 @@ export class PreciseShot extends Ability {
     public prepare():spellEffect {
         let castTime:number = this._castTime;
         let preciseShotAura:Aura|undefined = this.owner.getAuraById(PreciseShot.aura);
-        this._serpentArrows = this.owner.getAbility(abilityList.ARCHER_SERPENT_ARROWS);
+        this._serpentArrows = this._serpentArrows ?? this.owner.getAbility(abilityList.ARCHER_SERPENT_ARROWS);
+        this._poisonArrows = this._poisonArrows ?? this.owner.getAbility(abilityList.ARCHER_POISON_ARROWS);
 
         if (preciseShotAura) {
             preciseShotAura.expire();
@@ -98,7 +101,7 @@ export class PreciseShot extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void {
+    protected onCasted(effect:spellEffect, timeElsaped:number):void {
         let auraEffect:auraEffect = {
             id: SwiftShot.aura,
             name: "Swift Shot - Instant",
@@ -110,44 +113,44 @@ export class PreciseShot extends Ability {
             applyStacks: 2
         }
 
-        this.applyAura(auraEffect);
-        /** If ability is AOE then deal damage multiple times */
-        /** !! Hack Version, make it more generic */
+        this.owner.applyAura(auraEffect);
+
         if (effect.baseDamage > 0 || effect.bonusDamage > 0) {
             /** First target takes full damage, all others takes reduced damage */
-            let damage = this.dealDamage(effect, timeElsaped, 1, 0);
+            this.doEffect(Enemy.list[0], effect, timeElsaped);
 
             if (this.isAoe && this._serpentArrows && Simulation.targets > 1) {
                 let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
+                let enemyList = new EnemyListShuffle(Enemy.list, targets, false);
                 /** We iterate over other targets if there are more */
-                for (let i = 0; i < targets; i++)
-                    this.dealDamage(effect, timeElsaped, SerpentArrows.bonusDamage[this._serpentArrows.rank], 0);
-            }
-
-            /** Apply poison arrows */
-            let poisonArrows = this.owner.getAbility(abilityList.ARCHER_POISON_ARROWS);
-            if (poisonArrows) {
-                let poisonAura:auraEffect = {
-                    id: PoisonArrows.aura,
-                    name: "Poison Arrows",
-                    hasDamageEffect: true,
-                    damageEffect: {
-                        baseDamage: 3,
-                        bonusDamage: damage * PoisonArrows.bonusDamage[poisonArrows.rank],
-                        tickIndex: 1.5, // every 1.5sec
-                        isAoe: this.isAoe,
-                        maxTargets: Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets,
-                        triggeredDamage: true
-                    },
-                    duration: PoisonArrows.duration,
-                    rank: poisonArrows.rank,
-                    isStackable: true,
-                    maxStacks: 3
-                }
-
-                this.applyAura(poisonAura);
+                for (let i = 1; i < targets; i++) 
+                    this.doEffect(enemyList.next(), effect, timeElsaped, {damageMod: SerpentArrows.bonusDamage[this._serpentArrows.rank]});
             }
         }
+    }
+
+    protected onImpact(target:Enemy, damage:number, effect:spellEffect, timeElsaped:number):number|void {
+        /** Apply poison arrows */
+        if (!this._poisonArrows)
+            return;
+
+        let poisonAura:auraEffect = {
+            id: PoisonArrows.aura,
+            name: "Poison Arrows - Debuff",
+            hasDamageEffect: true,
+            damageEffect: {
+                baseDamage: 3,
+                bonusDamage: PoisonArrows.bonusDamage[this._poisonArrows.rank] * damage,
+                tickIndex: 1.5, // every 1.5sec
+                triggeredDamage: true
+            },
+            duration: PoisonArrows.duration,
+            rank: this._poisonArrows.rank,
+            isStackable: true,
+            maxStacks: 3
+        }
+
+        target.applyAura(poisonAura, this.owner);
     }
 }
 
@@ -180,23 +183,22 @@ export class Dash extends Ability {
             rank: 1
         }
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
         this.applyAuraId = PreciseShot.aura;
 
         let preciseShot:Ability|undefined = this.owner.getAbility(abilityList.ARCHER_PRECISE_SHOT);
-        if (preciseShot)
-            preciseShot.resetCooldown();
+        preciseShot?.resetCooldown();
 
         this.manaCost = this._manaCost;
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
+    public onCasted(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class SerpentArrows extends Ability {
     public static jumps:Array<number> = [0, 3, 4, 5, 6, 7];
-    public static bonusDamage:Array<number> = [0, 0.245, 0.37, 0.495, 0.62, 0,745];
+    public static bonusDamage:Array<number> = [0, 0.245, 0.37, 0.495, 0.62, 0.745];
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -263,13 +265,13 @@ export class Invigorate extends Ability {
             },
         }
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
         this.applyAuraId = this._applyAura;
 
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void {
+    protected onCasted():void {
         // Regenerate mana when casted succesfuly
         this.owner.regenerateManaPercentage(this._manaRegen[this.rank]);
     }
@@ -303,7 +305,7 @@ export class Pathfinding extends Ability {
         return effect;
     }
 
-    public onImpact(effect:spellEffect, timeElsaped:number):void { return; }
+    public onCasted(effect:spellEffect, timeElsaped:number):void { return; }
 }
 
 export class CranialPunctures extends Ability {
@@ -334,7 +336,7 @@ export class CranialPunctures extends Ability {
             rank: this.rank
         }
     
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }
 
@@ -373,7 +375,7 @@ export class TemporalDilatation extends Ability {
      * @param effect - unused here
      * @param timeElsaped - unused here
      */
-    public onImpact():void {
+    public onCasted():void {
         let auraEffect:auraEffect = {
             id: this._applyAura,
             name: "Temporal Dilatation",
@@ -391,6 +393,6 @@ export class TemporalDilatation extends Ability {
             rank: this.rank
         }
 
-        this.applyAura(auraEffect);
+        this.owner.applyAura(auraEffect);
     }
 }

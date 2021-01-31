@@ -73,7 +73,7 @@ export class WarBulwark extends Aura {
                     maxStacks: 8,
                     applyStacks: applyStacks
                 }
-                this.applyAura(auraEffect);
+                this.applyAura(this.owner, auraEffect);
             }
         }
     }
