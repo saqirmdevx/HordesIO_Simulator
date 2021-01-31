@@ -63,13 +63,18 @@ ability.id=23
 ability.rank=4
 ability=push()
 
-#ManaPotion
-ability.id=5001
-ability.condition.mana!=25 #Mana below 25%
-ability.rank=3
-ability=push()
+#Item - Large Mana Potion
+item.id=5003
+item.condition.mana!=25
+item=push()
+
+#Item - Tattooed Skull
+item.id=5004
+item=push()
 
 #add abilites queue to cast in order
+abilityQue.add=5004 #Tattooed Skull
+
 abilityQue.add=23 #Enchant
 abilityQue.add=24 #Artic Aura
 abilityQue.add=22 #chilling Radiance
@@ -78,4 +83,5 @@ abilityQue.add=21 #Icicle Orb
 abilityQue.add=25 #Hypothermic Frenzy
 abilityQue.add=26 #Ice shield
 abilityQue.add=27 #Teleport
-abilityQue.add=5001 #ManaPotion
+
+abilityQue.add=5003 #ManaPotion

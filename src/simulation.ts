@@ -149,8 +149,9 @@ export default class Simulation {
         Main.vue.dps.average = Math.floor((damage.total / this.playerList.length) / (timeElsaped / 1000));
 
         /** Update auras !move to another function later **/
-        this.playerList[0]._activeAuras.forEach((aura:any, index:number) => {
-            Main.vue.activeAuras[index] = {id: aura.id, name: aura.name, duration: Math.floor(aura.duration / 1000), stacks: aura.getStacks(), maxDuration: Math.floor(aura.maxDuration/1000)}
-        });
+        if (Simulation.debug)
+            this.playerList[0]._activeAuras.forEach((aura:any, index:number) => {
+                Main.vue.activeAuras[index] = {id: aura.id, name: aura.name, duration: Math.floor(aura.duration / 1000), stacks: aura.getStacks(), maxDuration: Math.floor(aura.maxDuration/1000)}
+            });
     }
 }

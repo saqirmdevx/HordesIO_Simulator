@@ -41,8 +41,8 @@ export default class Enemy {
     
     public getAuraById(auraId:number, owner?:Player):Aura|undefined {
         if (owner)
-            return this._activeAuras.find((aura:Aura) => aura.id == auraId && aura.owner.id == owner.id as number);
-        return this._activeAuras.find((aura:Aura) => aura.id == auraId as number);
+            return this._activeAuras.find((aura:Aura) => aura && aura.id == auraId && aura.owner.id == owner.id as number);
+        return this._activeAuras.find((aura:Aura) => aura && aura.id == auraId as number);
     }
 
     public applyAura(effect:auraEffect, owner:Player):void {

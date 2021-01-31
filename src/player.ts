@@ -8,7 +8,7 @@ import Enemy from "./enemy.js"
 import * as MageScripts from "./scripts/mage.js";
 import * as WarriorScripts from "./scripts/warrior.js";
 import * as ArcherScripts from "./scripts/archer.js";
-import * as DefaultScripts from "./scripts/default.js";
+import * as ItemScripts from "./scripts/items.js";
 
 export interface statTypes {
     manaregen:number,
@@ -88,6 +88,7 @@ export default class Player {
             attackSpeed: stats.attackSpeed
         }
 
+        /** Parse abilites from APL script */
         abilityList.forEach((ability:any) => {
             /** Search for ability class / script and add it into list */
             let abilityScript:Ability|undefined = this._getAbilityScripts(ability);
@@ -104,6 +105,11 @@ export default class Player {
     }
 
     private _regenTime = 5000;
+    /**
+     * doUpdate fired in simulation each (updateTime/diff)
+     * @param diff - Update Time
+     * @param timeElsaped - Time elsaped from start
+     */
     public doUpdate(diff:number, timeElsaped:number):void {
         if (this.globalCooldown > 0)
             this.globalCooldown -= diff;
@@ -128,7 +134,7 @@ export default class Player {
         if (Simulation.slowMotion && Simulation.debug && timeElsaped % 200 === 0)
             Main.vue.mana = this.mana;
 
-        /** Update all active auras */
+        /** Update all active auras -> fire doUpdate on all auras and remove those whcih are inactive */
         for (let i = 0; i < this._activeAuras.length; i++) {
             this._activeAuras[i].doUpdate(diff, timeElsaped);
 
@@ -143,7 +149,7 @@ export default class Player {
         for (let i = 0; i < this._abilityList.length; i++) 
             this._abilityList[i].doUpdate(diff, timeElsaped);
 
-        if (this.globalCooldown < diff && !this.isCasting){
+        if (!this.isCasting){
             this._jumps = 0;
             this.doCast(timeElsaped, this._queIndex);
         }
@@ -165,6 +171,9 @@ export default class Player {
             this._queIndex = 0;
             return;
         }
+
+        if (!ability.isItem && this.globalCooldown > 0)
+            return;
     
         if (ability.manaCost > this.mana) {
             this.doCast(timeElsaped, queIndex + 1);
@@ -194,8 +203,9 @@ export default class Player {
         if (this._queIndex > this._abilityQueue.length - 1)
             this._queIndex = 0;
 
-        if (!ability.hasGlobal)
-            this.doCast(timeElsaped, queIndex + 1);
+        if (!ability.triggerGlobal || ability.isItem) {
+            this.doCast(timeElsaped, queIndex);
+        }
         return;
     }
 
@@ -270,8 +280,14 @@ export default class Player {
             case abilityList.ARCHER_TEMPORAL_DILATATION:
                 return new ArcherScripts.TemporalDilatation(abilityData, this);
             /** Default */
-            case abilityList.MANA_POTION: 
-                return new DefaultScripts.ManaPotion(abilityData, this);
+            case abilityList.ITEM_SMALL_MANA_POTION: 
+                return new ItemScripts.ManaPotion(abilityData, this, 1);
+            case abilityList.ITEM_MEDIUM_MANA_POTION: 
+                return new ItemScripts.ManaPotion(abilityData, this, 2);
+            case abilityList.ITEM_LARGE_MANA_POTION: 
+                return new ItemScripts.ManaPotion(abilityData, this, 3);
+            case abilityList.ITEM_TATTOOED_SKULL: 
+                return new ItemScripts.TatooedSkull(abilityData, this);
             default:
                 return undefined;
         }
@@ -287,14 +303,11 @@ export default class Player {
 
     /*** Aura functions ***/
     public hasAura(auraId:abilityList):boolean {
-        if (this._activeAuras.some((aura:Aura) => aura.id == auraId as number))
-            return true;
-        return false;
+        return this._activeAuras.some((aura:Aura) => aura.id == auraId);
     }
     
     public getAuraById(auraId:number):Aura|undefined {
-        let found = this._activeAuras.find((aura:Aura) => aura.id == auraId as number);
-        return found ? found : undefined;
+        return this._activeAuras.find((aura:Aura) => aura && aura.id == auraId);
     }
 
     public getManaPercentage():number {

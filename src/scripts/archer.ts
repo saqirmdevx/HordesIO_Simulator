@@ -18,6 +18,8 @@ export class SwiftShot extends Ability {
         super(abilityData, owner);
         this.name = `Swift Shot ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -37,8 +39,6 @@ export class SwiftShot extends Ability {
             cooldown: 0,
             castTime: castTime
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 
@@ -68,6 +68,10 @@ export class PreciseShot extends Ability {
         super(abilityData, owner);
         this.name = `Precise Shot ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = SwiftShot.aura;
+        this.forced = true;
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -94,10 +98,6 @@ export class PreciseShot extends Ability {
             cooldown: this._cooldown,
             castTime: castTime
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = SwiftShot.aura;
-        this.forced = true;
         return effect;
     }
 
@@ -161,7 +161,11 @@ export class Dash extends Ability {
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Dash ${abilityData.rank}`;
+
         this.maxRank = 1;
+        this.triggerGlobal = false;
+        this.manaCost = this._manaCost;
+        this.applyAuraId = PreciseShot.aura;
 
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
@@ -184,12 +188,8 @@ export class Dash extends Ability {
         }
 
         this.owner.applyAura(auraEffect);
-        this.applyAuraId = PreciseShot.aura;
-
         let preciseShot:Ability|undefined = this.owner.getAbility(abilityList.ARCHER_PRECISE_SHOT);
         preciseShot?.resetCooldown();
-
-        this.manaCost = this._manaCost;
         return effect;
     }
 
@@ -236,6 +236,9 @@ export class Invigorate extends Ability {
         super(abilityData, owner);
         this.name = `Invigorate ${abilityData.rank}`;
 
+        this.triggerGlobal = false;
+        this.applyAuraId = this._applyAura;
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -264,10 +267,7 @@ export class Invigorate extends Ability {
                 attackSpeed: 0,
             },
         }
-
         this.owner.applyAura(auraEffect);
-        this.applyAuraId = this._applyAura;
-
         return effect;
     }
 
@@ -287,7 +287,10 @@ export class Pathfinding extends Ability {
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Pathfinding ${abilityData.rank}`;
+
         this.maxRank = 4;
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura
 
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
@@ -300,8 +303,6 @@ export class Pathfinding extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = this._applyAura
         return effect;
     }
 
@@ -351,7 +352,10 @@ export class TemporalDilatation extends Ability {
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Temporal Dilatation ${abilityData.rank}`;
+
         this.maxRank = 4;
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura; // only for condition
 
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} - Rank is not in range`);
@@ -364,9 +368,6 @@ export class TemporalDilatation extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 

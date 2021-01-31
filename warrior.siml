@@ -76,13 +76,19 @@ ability.id=10
 ability.rank=1
 ability=push()
 
-#ManaPotion
-ability.id=5001
-ability.condition.mana!=25 # mana below 25%
-ability.rank=3
-ability=push()
+## --- Items --- ##
+#Item - Large Mana Potion
+item.id=5003
+item.condition.mana!=25
+item=push()
+
+#Item - Tattooed Skull
+item.id=5004
+item=push()
 
 #add abilites queue to cast in order
+abilityQue.add=5004 #Tattooed Skull
+
 abilityQue.add=6 #Charge
 abilityQue.add=2 #Unholy Warcry
 abilityQue.add=7 #Crusader Courage
@@ -92,4 +98,5 @@ abilityQue.add=10 #Tempering
 abilityQue.add=5 #Taunt
 abilityQue.add=8 #Bulwark
 abilityQue.add=9 #Colossal Reconstruction
-abilityQue.add=5001 #ManaPotion
+
+abilityQue.add=5003 #ManaPotion

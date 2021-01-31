@@ -41,7 +41,7 @@ export default class APLData {
         for (let i = 0; i < data.length; i++) {
             /** comment line */
             if (data[i] === "#")
-                isIgnoring = !isIgnoring;
+                isIgnoring = true;
 
             if (isResulting && data[i] !== "\n" && !isIgnoring) 
                 result = result ? result + data[i] : data[i];
@@ -136,7 +136,7 @@ export default class APLData {
             return;
         }
 
-        if (base === "ability") {
+        if (base === "ability" || base === "item") {
             if (result === "push()") {
                 this.abilityList.push(this._abilityObject);
                 this._abilityObject = { id:0, rank:0, condition: {} };

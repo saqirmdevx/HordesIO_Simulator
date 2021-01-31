@@ -16,6 +16,8 @@ export class Slash extends Ability {
         super(abilityData, owner);
         this.name = `Slash ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -27,8 +29,6 @@ export class Slash extends Ability {
             cooldown: 0,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 }
@@ -46,6 +46,8 @@ export class CrescentSwipe extends Ability {
         super(abilityData, owner);
         this.name = `Crescent Swipe ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
@@ -61,8 +63,6 @@ export class CrescentSwipe extends Ability {
             cooldown: this._cooldown,
             castTime: 0,
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 
@@ -135,6 +135,9 @@ export class UnholyWarcry extends Ability {
         super(abilityData, owner);
         this.name = `Unholy Warcry ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura; // only for condition
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -146,9 +149,6 @@ export class UnholyWarcry extends Ability {
             cooldown: this._cooldown,
             castTime: 0,
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -188,6 +188,8 @@ export class Taunt extends Ability {
         super(abilityData, owner);
         this.name = `Taunt ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -199,8 +201,6 @@ export class Taunt extends Ability {
             cooldown: this._cooldown,
             castTime: 0,
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 
@@ -217,6 +217,8 @@ export class Charge extends Ability {
         super(abilityData, owner);
         this.name = `Charge ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -228,8 +230,6 @@ export class Charge extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 
@@ -248,6 +248,9 @@ export class CrusadersCourage extends Ability {
         super(abilityData, owner);
         this.name = `CrusadersCourage ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura; // only for condition
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -259,9 +262,6 @@ export class CrusadersCourage extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -288,6 +288,10 @@ export class Bulwark extends Ability {
         super(abilityData, owner);
         this.name = `Bulwark ${abilityData.rank}`;
 
+        this.triggerGlobal = false;
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura; // only for condition
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -299,10 +303,6 @@ export class Bulwark extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.hasGlobal = false;
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -343,6 +343,9 @@ export class ColossalReconstruction extends Ability {
         super(abilityData, owner);
         this.name = `Colossal Reconstruction ${abilityData.rank}`;
 
+        this.triggerGlobal = false;
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -354,9 +357,6 @@ export class ColossalReconstruction extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.hasGlobal = false;
         return effect;
     }
 
@@ -373,6 +373,8 @@ export class Tempering extends Ability {
         super(abilityData, owner);
         this.name = `Tempering ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -384,8 +386,6 @@ export class Tempering extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 

@@ -51,7 +51,6 @@ class Main {
             },
             methods: { 
                 readAPLFile: (event:any) => this.readAPLFile(event),
-                downloadExample: (event:any) => this.downloadExample(event),
                 startSimulation: () => {
                     if (this.result) 
                         this.startSimulation(this.result) 
@@ -81,26 +80,6 @@ class Main {
             });
             reader.readAsText(file);
         }
-    }
-
-    public downloadExample(event:any) {
-        fetch("https://raw.githubusercontent.com/Quentis/HordesIO_Simulator/master/mage.siml")
-        .then(resp => resp.blob())
-        .then(blob => {
-            const url:string = URL.createObjectURL(blob);
-            const customElem:HTMLAnchorElement = document.createElement('a');
-            const btn:HTMLButtonElement = document.querySelector("#downloadExample") as HTMLButtonElement;
-
-            customElem.style.display = 'none';
-            customElem.href = url;
-            customElem.download = 'test-mage.siml';
-            document.body.appendChild(customElem);
-            customElem.click();
-            window.URL.revokeObjectURL(url);
-
-            btn.style.display = "none";
-          })
-          .catch(() => { throw new Error("Something went wrong...") });
     }
 
     public resetVueData():void {

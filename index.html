@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" sizes="32x32" href="./style/favicon.png">
     <title>Hordes IO Simulation</title>
 
     <link rel="stylesheet" href="./style/style.css">
@@ -10,6 +11,10 @@
     <script defer type="module" src="./build/main.js"></script>
 </head>
 <body>
+    <div id="links">
+        <a href="https://github.com/Quentis/HordesIO_Simulator" target="_blank"><img id="link" src="./style/Github.png" /></a>
+        <a href="https://hordes.io/" target="_blank"><img id="link" src="./style/HordesIo.png" /></a>
+    </div>
     <div id="app">
         <div id="loading" v-show="loading"><span class="loadingIco"></span></div>
         <div class="inputFile">
@@ -17,7 +22,8 @@
             @change="readAPLFile">
         </div>
         <center>
-            <button class="button-sim" id="downloadExample" @click="downloadExample()">Download Example (Mage)</button> <br />
+            <a href="https://github.com/Quentis/HordesIO_Simulator/blob/master/readme.md" target="_blank"><button class="button-sim" id="downloadExample">Examples & Tutorial</button></a>
+            <br />
             <button class="button-sim" @click="startSimulation()">Start simulation</button>
         </center>
         <hr>
@@ -31,7 +37,7 @@
             <p v-if="dps.average > 0"><span v-bind:style="{ width: (100 / (dps.highest+dps.lowest) * dps.average) + '%' }" class="fill"></span>Average DPS:  {{ dps.average }} </p>
             <br />
             <div v-if="debug">
-                <p style="width:85%;" v-if="maxMana>0"><span v-bind:style="{width: (100 / (maxMana) * mana) + '%' }" style="background-color:lightblue" class="fill"></span>Current Mana:  {{ mana }} </p>
+                <p style="width:85%;" v-if="maxMana>0"><span v-bind:style="{width: (100 / (maxMana) * mana) + '%' }" style="background-color:lightblue" class="fill"></span>Current Mana:  {{ Math.floor(mana) }} </p>
                 <br />
                 <div v-if="activeAuras.length > 0" class="auraList"> Auras: <br />
                     <p class="auras" v-for="aura in activeAuras" :key="aura.id"><span v-bind:style="{width: (100 / (aura.maxDuration) * aura.duration) + '%' }" style="background-color:silver" class="fill">

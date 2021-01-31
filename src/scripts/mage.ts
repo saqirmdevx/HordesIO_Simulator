@@ -21,6 +21,10 @@ export class ChillingRadiance extends Ability {
         super(abilityData, owner);
         this.name = `Chilling Radiance ${abilityData.rank}`;
 
+        this.isAoe = true;
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura; // only for condition
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -32,10 +36,6 @@ export class ChillingRadiance extends Ability {
             cooldown: this._cooldown,
             castTime: 0,
         }
-
-        this.isAoe = true;
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -79,6 +79,8 @@ export class IceBolt extends Ability {
         super(abilityData, owner);
         this.name = `Ice bolt ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];   
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
@@ -114,8 +116,6 @@ export class IceBolt extends Ability {
             castTime: castTime
         }
 
-        this.manaCost = this._manaCost[this.rank];   
-
         return effect;
     }
 
@@ -125,7 +125,7 @@ export class IceBolt extends Ability {
 
         this._icicleOrb?.reduceCoolown(500);
 
-        let chillingRadiance:Aura|undefined = target.getAuraById(this._chillingRadiance);
+        let chillingRadiance:Aura|undefined = target.getAuraById(this._chillingRadiance, this.owner);
         if (chillingRadiance)
             critMod = 0.01 + (0.03 * chillingRadiance.rank);
 
@@ -181,6 +181,8 @@ export class IcicleOrb extends Ability {
         super(abilityData, owner);
         this.name = `Icicle Orb ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
 
@@ -194,8 +196,6 @@ export class IcicleOrb extends Ability {
             cooldown: this._cooldown,
             castTime: this._castTime
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 
@@ -229,6 +229,9 @@ export class Enchant extends Ability {
         super(abilityData, owner);
         this.name = `Enchant ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura; // only for condition
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} - Rank is not in range`);
     }
@@ -240,9 +243,6 @@ export class Enchant extends Ability {
             cooldown: 0,
             castTime: this._castTime
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -287,6 +287,9 @@ export class ArcticAura extends Ability {
         super(abilityData, owner);
         this.name = `Arctic Aura ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+        this.applyAuraId = this._applyAura; // only for condition
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -298,9 +301,6 @@ export class ArcticAura extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -344,6 +344,9 @@ export class HypothermicFrenzy extends Ability {
         super(abilityData, owner);
         this.name = `Hypothermic frenzy ${abilityData.rank}`;
 
+        this.applyAuraId = this._applyAura; // only for condition
+        this.triggerGlobal = false;
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -355,8 +358,6 @@ export class HypothermicFrenzy extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -402,8 +403,6 @@ export class HypothermicFrenzy extends Ability {
 
 export class IceShield extends Ability {
     /** !!! This ability has no effect !!! */
-    // Placeholder Values
-    //private _duration:number = 60000;
     private _manaCost:Array<number> = [0, 5, 10, 15, 20, 25];
     private _cooldown:number = 60000;
 
@@ -412,6 +411,11 @@ export class IceShield extends Ability {
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Ice Shield ${abilityData.rank}`;
+
+        this.manaCost = this._manaCost[this.rank];
+        this.forced = true;
+        this.applyAuraId = this._applyAura; // only for condition
+        this.triggerGlobal = false;
 
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
@@ -424,10 +428,6 @@ export class IceShield extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
-        this.forced = true;
-        this.applyAuraId = this._applyAura; // only for condition
         return effect;
     }
 
@@ -452,6 +452,8 @@ export class Teleport extends Ability {
         super(abilityData, owner);
         this.name = `Teleport ${abilityData.rank}`;
 
+        this.manaCost = this._manaCost[this.rank];
+
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
     }
@@ -463,8 +465,6 @@ export class Teleport extends Ability {
             cooldown: this._cooldown,
             castTime: 0
         }
-
-        this.manaCost = this._manaCost[this.rank];
         return effect;
     }
 

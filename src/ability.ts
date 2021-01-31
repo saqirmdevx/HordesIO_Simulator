@@ -79,9 +79,13 @@ export enum abilityList {
     ARCHER_TEMPORAL_DILATATION = 36,
     ARCHER_TEMPORAL_DILATATION_AURA = 3005,
 
-    /** default abilites */
-    MANA_POTION = 5001,
-    MANA_POTION_AURA = 5002,
+    /** item abilites */
+    ITEM_SMALL_MANA_POTION = 5001,
+    ITEM_MEDIUM_MANA_POTION = 5002,
+    ITEM_LARGE_MANA_POTION = 5003,
+    ITEM_TATTOOED_SKULL = 5004,
+
+    ITEM_MANA_POTION_AURA = 6001,
 }
 
 /** This is used as input data */
@@ -115,7 +119,7 @@ export default abstract class Ability {
     public name:string = "undefined"; // Ability Name just for debuging
 
     public cooldown:number = 0;
-    public hasGlobal:boolean = true;
+    public triggerGlobal:boolean = true;
 
     public isAoe:boolean = false;
     public maxTargets:number = 20;
@@ -124,6 +128,8 @@ export default abstract class Ability {
     public forced:boolean = false;
 
     public manaCost:number = 0;
+
+    public isItem:boolean = false;
 
     private _storeEffect: spellEffect|null = null;
 
@@ -159,7 +165,7 @@ export default abstract class Ability {
         if (!effect)
             return;
 
-        if (this.hasGlobal)
+        if (this.triggerGlobal && !this.isItem)
             this.owner.globalCooldown = Math.round(__calcHasteBonus(Placeholders.GLOBAL_COOLDOWN, this.owner.hasteStat)) * 100;
 
         if (this.owner.id == 0 && Simulation.debug)
@@ -174,13 +180,16 @@ export default abstract class Ability {
         this._done(effect, timeElsaped);
     }
 
-    /** When cast is done */
+    /**
+     * Ability _done is casted when ability is sucessfuly casted. This is first method which is invoked (cant be re-written in script)
+     * It is followed by -> onCasted, doEffect, dealDamage, onImpact this is exact order
+     */
     private _done(effect: spellEffect|undefined, timeElsaped:number):void {
         if (!effect)
             return;
 
         if (effect.cooldown > 0)
-            this.cooldown = Math.round(__calcHasteBonus(effect.cooldown / 100, this.owner.hasteStat)) * 100;
+            this.cooldown = this.isItem ? effect.cooldown : Math.round(__calcHasteBonus(effect.cooldown / 100, this.owner.hasteStat)) * 100;
 
         if (this.manaCost)
             this.owner.mana -= this.manaCost;
@@ -193,7 +202,9 @@ export default abstract class Ability {
         this._storeEffect = null;
     }
 
-    /** Before hit is sucessful */
+    /**
+     * Rewritable method in script, invoked when cast is done. Here we are searching for targets and invoking doEffect for each target it hits
+     */
     protected onCasted(effect:spellEffect, timeElsaped:number, {damageMod = 1, critMod = 0, randomizeTarget = false} = {}):void {
         /** If ability is AOE then deal damage multiple times */
         if (this.isAoe && Simulation.targets > 1) {
@@ -211,6 +222,9 @@ export default abstract class Ability {
         this.doEffect(Enemy.list[0], effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
     }
 
+    /**
+     * Rewritable method in script - It is invoked by onCasted, This method can be invoked multiple times when ability is AOE
+     */
     protected doEffect(target:Enemy, effect:spellEffect, timeElsaped:number, {damageMod = 1, critMod = 0} = {}):number {
         let damageDone:number = Math.floor(effect.baseDamage + __random(this.owner.mindamageStat, this.owner.maxdamageStat) * effect.bonusDamage / 100);
 
@@ -282,7 +296,14 @@ export default abstract class Ability {
         return;
     }
 
-    /** When target is sucessfuly hitted */
+    /**
+     * This method is invoked when target takes damage and everything is sucessfuly commited. Use this if you need invoke method after DamageDone
+     * Auras applied by this method has no effect on current effect.
+     * @param target - Hitted Target
+     * @param damageDone - Damage dealt
+     * @param effect - Effect
+     * @param timeElsaped - Time elsaped
+     */
     protected onImpact(target:Enemy, damageDone:number, effect:spellEffect, timeElsaped:number):void {
         return;
     }

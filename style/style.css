@@ -170,3 +170,28 @@ body {
   text-align: center;
   padding: 28px;
 }
+
+#links {
+  position: absolute;
+  top: -64px;
+  right: -164px;
+  transform: rotate(30deg);
+  width: 400px;
+  height: 128px;
+  text-align: center;
+  border-bottom: 1px solid black;
+  background-color: silver;
+}
+
+#link {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  padding: 6px;
+  transition: opacity 0.25s;
+  margin-top: 80px;
+}
+
+#link:hover {
+  opacity: 0.6;
+}
