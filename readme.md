@@ -1,6 +1,6 @@
 # HordesIO_Simulator
 
-<a href="https://quentis.itch.io/testing-hordesiosim"> ## Simulation page </a>
+<a href="https://quentis.itch.io/hordesio-simulationcraft"> ## Simulation page </a>
 
 This is simulation for <a href="https://hordes.io"> Hordes.Io </a>
 
@@ -11,6 +11,8 @@ This is simulation for <a href="https://hordes.io"> Hordes.Io </a>
 [Mage-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/mage.siml)
 
 [Archer-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/archer.siml)
+
+[Shaman-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/shaman.siml)
 
 
 ## How APL Works? 
@@ -75,6 +77,8 @@ ability.condition.cooldown=(abilityId) # If player has cooldown on (abilityId) t
 ability.condition.cooldown!=(abilityId) # If player has no cooldown on (abilityId) this ability will be casted
 
 ability.forced=1 # Value between 1 and 0 (Boolean) - If ability is forced to cast even if aura is up
+
+ability.once=0 # Value between 1 and 0 (boolean) - Ability flaged with once will cast only once for the simulation (once per simulator)
 ```
 More conditions will be added in future.
 
@@ -105,28 +109,16 @@ Name - Id
 ```code
     Slash = 0
     Crescent Swipe = 1
-
     Unholy Warcry = 2
-    Unholy Warcry Aura = 1001
-
     Centrifugal Laceration = 3
-    Centrifugal Laceration Aura = 1002
-
     Armor Reinforcement = 4
-    Armor Reinforcement Aura = 1003
-
     Taunt = 5
     Charge = 6
-
     Crusader Courage = 7
-    Crusader Courage Aura = 1004
-
-    Bulwark = 8
-    Bulwark Block Aura = 1005
-    Bulwark Damage Aura = 1006
+    Bulwark = 8 /* Same id for BLOCK% buff */
+     - Bulwark Damage Buff = 1006 /* Damage buff */
 
     Colossal Reconstruction = 9
-
     Tempering = 10
 ```
 
@@ -134,27 +126,16 @@ Name - Id
 Name - Id 
 ```code
     Icebolt = 20
-    Icebolt Aura - Slow = 2001
-    Icebolt Aura - Freeze (5. stack) = 2002
-    Icebolt Aura (Positive) - Instant Cast = 2003
+     - Icebolt Debuff - Slow = 2001
+     - Icebolt Debuff - Freeze (5. stack) = 2002
+     - Icebolt Buff - Instant Cast = 2003
 
     Icicle Orb = 21
-
     Chilling Radiance = 22
-    Chilling Radiance Aura = 2004
-
     Enchant = 23
-    Enchant Aura = 2005
-
     Arctic Aura = 24
-    Arctic Aura - Aura = 2006
-
     Hypothermic Frenzy = 25
-    Hypothermic Frenzy - Aura = 2007
-
     Ice Shield = 26
-    Ice Shield - Aura = 2008  !! Unused
-
     Teleport = 27
 ```
 
@@ -162,32 +143,38 @@ Name - Id
 Name - Id 
 ```code
     Swift Shot = 28
-    Swift Shot - Instant Aura = 3000 /** Applied by precise shot */
+     - Swift Shot - Instant Aura = 3000 /** Applied by precise shot */
 
     Precise Shot = 29
-    Precise Shot - Instant = 3001 /** Applied by Dash */
+     - Precise Shot - Instant = 3001 /** Applied by Dash */
 
     Dash = 30
-
     Serpent Arrows = 31
-
     Poison Arrows = 32
-    Poison Arrows - Aura = 3002 /** applied by precise shot if has poison arrows */
-
     Invigorate = 33
-    Invigorate - Aura = 3003
-
     Pathfinding = 34
-
     Cranial Punctures = 35
-
     Temporal Dilatation = 36
-    Temporal Dilatation - Aura = 3005
+```
+### Shaman: 
+Name - Id 
+```code
+    Decay = 37  /** Same id for debuff **/
+    Plaguespreader = 38 /** Same id for buff **/
+    Soul Harvest = 39
+    Canine Howl = 40 /** Same id for buff **/
+    Mimir's well = 41 /** Same id for buff **/
+    Animal Spirit = 42 /** Same id for buff **/
+    //** There are not healing abilites as we are simulating DPS only. Might be added in future **//
 ```
 
-### Default :
+### Items :
 Name - Id
 ```code
-  Mana Potion = 5001
-  Mana Potion - Aura = 5002
+    Small Mana potion = 5001
+    Medium Mana potion = 5002
+    Large Mana potion = 5003
+     - Mana potion buff = 6000 //** All mana potions apply this buff id. use ability.condition.aura=6000 **//
+
+    Charm: Tattooed Skull = 5004
 ```

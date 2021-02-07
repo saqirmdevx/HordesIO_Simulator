@@ -8,6 +8,7 @@ import Enemy from "./enemy.js"
 import * as MageScripts from "./scripts/mage.js";
 import * as WarriorScripts from "./scripts/warrior.js";
 import * as ArcherScripts from "./scripts/archer.js";
+import * as ShamanScripts from "./scripts/shaman.js";
 import * as ItemScripts from "./scripts/items.js";
 
 export interface statTypes {
@@ -57,6 +58,7 @@ export default class Player {
     public _activeAuras:Array<Aura> = [];
     private _abilityList:Array<Ability> = [];
     private _abilityQueue:Array<Ability> = [];
+    private _abilityQueueLength:number;
 
     public damageTaken:number = 0;
 
@@ -79,29 +81,31 @@ export default class Player {
         }
 
         this._baseStats = { 
-            manaregen: stats.manaregen,
-            block: stats.block,
-            mindamage: stats.mindamage,
-            maxdamage: stats.maxdamage,
-            critical: stats.critical,
-            haste: stats.haste,
-            attackSpeed: stats.attackSpeed
+            manaregen: stats.manaregen ?? 0,
+            block: stats.block ?? 0,
+            mindamage: stats.mindamage ?? 0,
+            maxdamage: stats.maxdamage ?? 0,
+            critical: stats.critical ?? 0,
+            haste: stats.haste ?? 0,
+            attackSpeed: stats.attackSpeed ?? 0
         }
 
         /** Parse abilites from APL script */
-        abilityList.forEach((ability:any) => {
+        for (const ability of abilityList) {
             /** Search for ability class / script and add it into list */
             let abilityScript:Ability|undefined = this._getAbilityScripts(ability);
             if (abilityScript)
                 this._abilityList.push(abilityScript);
-        });
+        }
 
         /** Sort by priority */
-        abilityQue.forEach((id:number) => {
+        for (const id of abilityQue) {
             let ability:Ability|undefined = this.getAbility(id);
             if (ability)
                 this._abilityQueue.push(ability);
-        });
+        }
+
+        this._abilityQueueLength = this._abilityQueue.length - 1;
     }
 
     private _regenTime = 5000;
@@ -158,12 +162,12 @@ export default class Player {
     private _queIndex:number = 0;
     private _jumps:number = 0; /** Max jumps to prevent stuck */
     public doCast(timeElsaped:number, queIndex:number):void {
-        if (this._jumps > this._abilityQueue.length - 1)
+        if (this._jumps > this._abilityQueueLength)
             return;
 
         this._jumps++;
 
-        if (queIndex > this._abilityQueue.length - 1)
+        if (queIndex > this._abilityQueueLength)
             queIndex = 0
 
         let ability:Ability = this._abilityQueue[queIndex];
@@ -174,13 +178,8 @@ export default class Player {
 
         if (!ability.isItem && this.globalCooldown > 0)
             return;
-    
-        if (ability.manaCost > this.mana) {
-            this.doCast(timeElsaped, queIndex + 1);
-            return;
-        }
 
-        if (ability.cooldown > 0) {
+        if (ability.cooldown > 0 || ability.manaCost > this.mana) {
             this.doCast(timeElsaped, queIndex + 1);
             return;
         }
@@ -191,16 +190,22 @@ export default class Player {
                 return;
             }
 
-        if (!ability.castCondition()) {
+        if (ability.hasConditions && !ability.castCondition()) {
             this.doCast(timeElsaped, queIndex + 1);
             return;
+        }
+
+        if (ability.once) {
+            let index = this._abilityQueue.findIndex((ab) => ab == ability);
+            this._abilityQueue.splice(index, 1);
+            this._abilityQueueLength = this._abilityQueue.length - 1;
         }
 
         ability.cast(timeElsaped);
 
         this._queIndex = ++queIndex;
         this._jumps = 0;
-        if (this._queIndex > this._abilityQueue.length - 1)
+        if (this._queIndex > this._abilityQueueLength)
             this._queIndex = 0;
 
         if (!ability.triggerGlobal || ability.isItem) {
@@ -279,6 +284,19 @@ export default class Player {
                 return new ArcherScripts.CranialPunctures(abilityData, this);
             case abilityList.ARCHER_TEMPORAL_DILATATION:
                 return new ArcherScripts.TemporalDilatation(abilityData, this);
+            /** Shaman */
+            case abilityList.SHAMAN_DECAY:
+                return new ShamanScripts.Decay(abilityData, this);
+            case abilityList.SHAMAN_PLAGUESPREADER:
+                return new ShamanScripts.Plaguespreader(abilityData, this);
+            case abilityList.SHAMAN_SOUL_HARVEST:
+                return new ShamanScripts.SoulHarvest(abilityData, this);
+            case abilityList.SHAMAN_CANINE_HOWL:
+                return new ShamanScripts.CanineHowl(abilityData, this);
+            case abilityList.SHAMAN_MIMIRS_WELL:
+                return new ShamanScripts.MimirsWell(abilityData, this);
+            case abilityList.SHAMAN_SPIRIT_ANIMAL:
+                return new ShamanScripts.SpiritAnimal(abilityData, this);
             /** Default */
             case abilityList.ITEM_SMALL_MANA_POTION: 
                 return new ItemScripts.ManaPotion(abilityData, this, 1);

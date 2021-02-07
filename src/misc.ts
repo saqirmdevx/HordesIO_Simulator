@@ -8,15 +8,11 @@ export enum Placeholders {
  * @param time - Base time in ms
  * @param haste - haste % (stats)
  */
-export function __calcHasteBonus(time:number, haste:number):number {
-    return time / (1 + haste);
-}
+export var __calcHasteBonus = (time:number, haste:number):number => time / (1 + haste);
 
 /**
  * roll a random value between Min and Max 
  * @param min - Min value
  * @param max - Max value
  */
-export function __random(min:number, max:number) {
-    return Math.floor(Math.random() * (max - min + 1) + min);
-}
+export var __random = (min:number, max:number) => Math.floor(Math.random() * (max - min + 1) + min);

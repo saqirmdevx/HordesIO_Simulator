@@ -15,7 +15,7 @@ export class ChillingRadiance extends Ability {
 
     private _manaCost:Array<number> = [0, 4, 8, 12, 16, 20];
 
-    private _applyAura:abilityList = abilityList.MAGE_CHILLINGRADIANCE_AURA;
+    private _applyAura:abilityList = abilityList.MAGE_CHILLINGRADIANCE;
 
     constructor(abilityData: abilityData, owner:Player) {
         super(abilityData, owner);
@@ -72,7 +72,7 @@ export class IceBolt extends Ability {
     private _iceboltSlow:abilityList = abilityList.MAGE_ICEBOLT_STACK;
     private _iceboltFreeze:abilityList = abilityList.MAGE_ICEBOLT_FREEZE;
     private _iceboltInstant:abilityList = abilityList.MAGE_ICEBOLT_INSTANT;
-    private _chillingRadiance:abilityList = abilityList.MAGE_CHILLINGRADIANCE_AURA;
+    private _chillingRadiance:abilityList = abilityList.MAGE_CHILLINGRADIANCE;
     private _icicleOrb:Ability|undefined;
 
     constructor(abilityData:abilityData, owner:Player) {
@@ -80,6 +80,7 @@ export class IceBolt extends Ability {
         this.name = `Ice bolt ${abilityData.rank}`;
 
         this.manaCost = this._manaCost[this.rank];   
+        this.applyAuraId = this._iceboltSlow; // only for condition
 
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
@@ -175,7 +176,7 @@ export class IcicleOrb extends Ability {
     private _cooldown:number = 15000;
 
     private _iceboltFreeze:abilityList = abilityList.MAGE_ICEBOLT_FREEZE;
-    private _chillingRadiance:abilityList = abilityList.MAGE_CHILLINGRADIANCE_AURA;
+    private _chillingRadiance:abilityList = abilityList.MAGE_CHILLINGRADIANCE;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -221,13 +222,13 @@ export class Enchant extends Ability {
     private _duration:number = 300000;
     private _manaCost:Array<number> = [0, 5, 8, 11, 14];
     private _castTime:number = 1500;
-    protected maxRank:number = 4;
 
-    private _applyAura:abilityList = abilityList.MAGE_ENCHANT_AURA;
+    private _applyAura:abilityList = abilityList.MAGE_ENCHANT;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Enchant ${abilityData.rank}`;
+        this.maxRank = 4;
 
         this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
@@ -279,13 +280,13 @@ export class ArcticAura extends Ability {
     private _duration:number = 300000;
     private _manaCost:Array<number> = [0, 15, 25, 35, 45];
     private _cooldown:number = 120000;
-    protected _maxRank:number = 4;
 
-    private _applyAura:abilityList = abilityList.MAGE_ARCTIC_AURA_AURA;
+    private _applyAura:abilityList = abilityList.MAGE_ARCTIC_AURA;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Arctic Aura ${abilityData.rank}`;
+        this.maxRank = 4;
 
         this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
@@ -338,7 +339,7 @@ export class HypothermicFrenzy extends Ability {
     private _duration:number = 12000;
     private _cooldown:number = 45000;
 
-    private _applyAura:abilityList = abilityList.MAGE_HYPOTHERMIC_FRENZY_AURA;
+    private _applyAura:abilityList = abilityList.MAGE_HYPOTHERMIC_FRENZY;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -406,14 +407,13 @@ export class IceShield extends Ability {
     private _manaCost:Array<number> = [0, 5, 10, 15, 20, 25];
     private _cooldown:number = 60000;
 
-    private _applyAura:abilityList = abilityList.MAGE_ICE_SHIELD_AURA;
+    private _applyAura:abilityList = abilityList.MAGE_ICE_SHIELD;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Ice Shield ${abilityData.rank}`;
 
         this.manaCost = this._manaCost[this.rank];
-        this.forced = true;
         this.applyAuraId = this._applyAura; // only for condition
         this.triggerGlobal = false;
 
@@ -446,11 +446,11 @@ export class Teleport extends Ability {
     // Placeholder Values
     private _manaCost:Array<number> = [0, 4];
     private _cooldown:number = 12000;
-    protected maxRank:number = 1;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Teleport ${abilityData.rank}`;
+        this.maxRank = 1;
 
         this.manaCost = this._manaCost[this.rank];
 

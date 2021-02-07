@@ -1,0 +1,64 @@
+#Default - Testing simulation block
+# - is used for comment line
+
+debug=1
+slowmotion=0 # Simulation in real time
+simulationtime=300000 # 5minute battle
+
+targets=3
+simulators=300
+mitigation=0.21640152412620914
+
+#Stats of player (Mana is not properity of stat)
+autoattack=1
+mana=574
+stats.manaregen=9
+stats.block=0.25
+stats.mindamage=174
+stats.maxdamage=201
+stats.haste=0.274
+stats.critical=0.16
+stats.attackSpeed=29
+
+# -- abilityList --
+
+#Decay
+ability.id=37
+ability.rank=5
+ability=push()
+
+#Plaguespreader
+ability.id=38
+ability.rank=5
+ability=push()
+
+#SoulHarvest
+ability.id=39
+ability.rank=5
+ability.condition.aura=4000 #if targetHas decay
+ability=push()
+
+#CanineHowl
+ability.id=40
+ability.rank=5
+ability.condition.aura=4003
+ability=push()
+
+#MimirsWell
+ability.id=41
+ability.rank=5
+ability.condition.mana!=50
+ability=push()
+
+#Large Mana potion
+item.id=5003
+item.condition.mana!=25
+item.rank=2
+item=push()
+
+#add abilites queue to cast in order
+abilityQue.add=40
+abilityQue.add=37
+abilityQue.add=41
+abilityQue.add=39
+abilityQue.add=5003

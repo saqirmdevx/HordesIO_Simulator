@@ -81,7 +81,7 @@ export default class APLData {
         }
     }
 
-    private _abilityObject:abilityData = { id:0, rank:0, condition: {} };
+    private _abilityObject:abilityData = { id:0, rank:0, condition: {}, once:false };
     private _onEndLine(properties:Array<string>, result:any, isNegated:boolean, line:number):void {
         let base:string = properties[0];
         let props:string = properties[1];
@@ -139,7 +139,7 @@ export default class APLData {
         if (base === "ability" || base === "item") {
             if (result === "push()") {
                 this.abilityList.push(this._abilityObject);
-                this._abilityObject = { id:0, rank:0, condition: {} };
+                this._abilityObject = { id:0, rank:0, condition: {}, once:false };
                 return;
             }
 

@@ -2,7 +2,7 @@ import Aura, { auraEffect } from "./aura.js";
 import Player from "./player.js";
 import { abilityList } from "./ability.js";
 import Simulation from "./simulation.js";
-import { __random } from "./misc.js";
+import { __random, __calcHasteBonus } from "./misc.js";
 
 export class MageIceboltInstant extends Aura {
     constructor(effect:auraEffect, owner:Player) {
@@ -84,16 +84,33 @@ export class ManaPotion extends Aura {
 
     constructor(effect:auraEffect, owner:Player) {
         super(effect, owner);
+        this.tickTime = 500;
     }
 
-    private _tickTime:number = 500;
+    public doUpdate(diff:number, timeElsaped:number):void {
+        super.doUpdate(diff, timeElsaped);
+        if (this.tickTime < diff) {
+            this.owner.regenerateMana(this._manaRegen[this.rank] / 30);
+            this.tickTime = 500;
+        }
+    }
+}
+
+export class MimirsWell extends Aura {
+    private _manaRegen:Array<number> = [0, 70, 100, 130, 160, 190];
+    private _tickIndex:number = 0.5;
+
+    constructor(effect:auraEffect, owner:Player) {
+        super(effect, owner);
+        this.tickTime = Math.round(__calcHasteBonus(this._tickIndex * 10, this.owner.hasteStat)) * 100;
+    }
+
     public doUpdate(diff:number, timeElsaped:number):void {
         super.doUpdate(diff, timeElsaped);
 
-        this._tickTime -= diff;
-        if (this._tickTime < diff) {
-            this.owner.regenerateMana(this._manaRegen[this.rank] / 30);
-            this._tickTime = 500;
+        if (this.tickTime < diff) {
+            this.owner.regenerateMana(this._manaRegen[this.rank] / (this.maxDuration / (this._tickIndex * 1000)));
+            this.tickTime = Math.round(__calcHasteBonus(this._tickIndex * 10, this.owner.hasteStat)) * 100;
         }
     }
 }

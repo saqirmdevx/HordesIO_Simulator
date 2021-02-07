@@ -88,7 +88,7 @@ export default class Simulation {
         if (this.slowMotion && this.debug) {
             if (this._updateDmgTimmer <= updateTime){
                 this._updateDamage(timeElsaped);
-                this._updateDmgTimmer = 1000;
+                this._updateDmgTimmer = 500;
             }
             else
                 this._updateDmgTimmer -= updateTime;
@@ -123,7 +123,10 @@ export default class Simulation {
             dpsLowest: 0
         }
 
-        this.playerList.forEach((player) => {
+        for (const player of this.playerList) {
+            if (player.damageDone <= 0)
+                continue;
+
             damage.total += player.damageDone;
             damage.highest = Math.max(damage.highest, player.damageDone);
 
@@ -137,7 +140,7 @@ export default class Simulation {
                 damage.dpsLowest = Math.floor(player.damageDone / (timeElsaped / 1000));
             else
                 damage.dpsLowest = Math.min(Math.floor(player.damageDone / (timeElsaped / 1000)), damage.dpsLowest);
-        });
+        }
 
         // Update visible value of DPS/Damage on the page 
         Main.vue.damage.highest = damage.highest;

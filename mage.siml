@@ -28,19 +28,20 @@ ability=push()
 
 #IcicleOrb
 ability.id=21
-#ability.condition.aura=2002
+ability.condition.aura=2002 #cast this only if target is affected by ice bolt - freeze
 ability.rank=5
 ability=push()
 
 #HypothermicFrenzy
 ability.id=25
 ability.rank=5
-#ability.condition.cooldown=21
+ability.condition.cooldown=21 #cast this only If target has cooldown on Icicle Orb
 ability=push()
 
 #ArticAura
 ability.id=24
 ability.rank=4
+ability.once=1 #Once will remove this ability from queue, it will be never casted again
 ability=push()
 
 #IceShield
@@ -61,6 +62,7 @@ ability=push()
 #Enchant
 ability.id=23
 ability.rank=4
+ability.once=1 #Once will remove this ability from queue, it will be never casted again
 ability=push()
 
 #Item - Large Mana Potion

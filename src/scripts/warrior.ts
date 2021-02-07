@@ -72,12 +72,12 @@ export class CrescentSwipe extends Ability {
 
         if (this._centrifugalLaceration) {
             let auraEffect:auraEffect = {
-                id: CentrifugalLaceration.aura,
+                id: abilityList.WAR_CENTRIFUGAL_LACERATION,
                 name: "Centrifugal Laceration",
                 hasDamageEffect: true,
                 damageEffect: {
                     baseDamage: 0,
-                    bonusDamage: Math.floor(damageDone * CentrifugalLaceration.bonusDamage[this._centrifugalLaceration.rank]),
+                    bonusDamage: damageDone * CentrifugalLaceration.bonusDamage[this._centrifugalLaceration.rank],
                     tickIndex: 1.5, // every 1.5sec
                     triggeredDamage: true
                 },
@@ -96,8 +96,6 @@ export class CentrifugalLaceration extends Ability {
     // Placeholder values per rank
     public static bonusDamage:Array<number> = [0, 0.125, 0.157, 0.189, 0.221, 0.253]; // % Based on min/max damage
     public static duration:number = 10000;
-
-    public static aura:abilityList = abilityList.WAR_CENTRIFUGAL_LACERATION_AURA;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -127,13 +125,12 @@ export class UnholyWarcry extends Ability {
     private _duration:number = 300000;
     private _manaCost:Array<number> = [0, 8, 16, 24, 32];
     private _cooldown:number = 150000;
-    protected maxRank:number = 4;
-
-    private _applyAura:abilityList = abilityList.WAR_UNHOLYWARCRY_AURA;
+    private _applyAura:abilityList = abilityList.WAR_UNHOLYWARCRY;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Unholy Warcry ${abilityData.rank}`;
+        this.maxRank = 4;
 
         this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
@@ -211,11 +208,11 @@ export class Charge extends Ability {
     /** !!!! ->This ability has no effect at the current simulation  */
     private _manaCost:Array<number> = [0, 12];
     private _cooldown:number = 15000;
-    protected maxRank:number = 1;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
-        this.name = `Charge ${abilityData.rank}`;
+        this.name = `Charge`;
+        this.maxRank = 1;
 
         this.manaCost = this._manaCost[this.rank];
 
@@ -242,11 +239,11 @@ export class CrusadersCourage extends Ability {
     private _manaCost:Array<number> = [0, 8, 16, 24, 32, 40];
     private _cooldown:number = 150000;
 
-    private _applyAura:abilityList = abilityList.WAR_CRUSADERS_COURAGE_AURA;
+    private _applyAura:abilityList = abilityList.WAR_CRUSADERS_COURAGE;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
-        this.name = `CrusadersCourage ${abilityData.rank}`;
+        this.name = `Crusader's courage ${abilityData.rank}`;
 
         this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
@@ -282,7 +279,7 @@ export class Bulwark extends Ability {
     private _manaCost:Array<number> = [0, 8, 13, 18, 23, 28];
     private _cooldown:number = 30000;
 
-    private _applyAura:abilityList = abilityList.WAR_BULWARK_AURA_BLOCK;
+    private _applyAura:abilityList = abilityList.WAR_BULWARK;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -367,11 +364,11 @@ export class Tempering extends Ability {
     /** !!!! ->This ability has no effect at the current simulation  */
     private _manaCost:Array<number> = [0, 8];
     private _cooldown:number = 30000;
-    protected maxRank:number = 1;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Tempering ${abilityData.rank}`;
+        this.maxRank = 1;
 
         this.manaCost = this._manaCost[this.rank];
 

@@ -1,6 +1,6 @@
 import {abilityList } from "./ability.js"
 import Enemy from "./enemy.js";
-import { __calcHasteBonus } from "./misc.js";
+import { __calcHasteBonus, __random } from "./misc.js";
 import Player, { statTypes } from "./player.js";
 
 export interface auraEffect {
@@ -98,15 +98,18 @@ export default class Aura {
             this.tickTime -= diff;
 
         if (this.tickTime < diff) {
-            if (this._effect.damageEffect && carrier)
-                this.dealDamage(carrier, this._effect.damageEffect, timeElsaped)
+            if (this._effect.damageEffect && carrier) {
+                // resetTick timer
+                this.tickTime = Math.round(__calcHasteBonus(this._effect.damageEffect.tickIndex * 10, this.owner.hasteStat)) * 100;
+                if (!this._effect.damageEffect.triggeredDamage)
+                    this.damageDeal = this._effect.damageEffect.baseDamage + (__random(this.owner.mindamageStat, this.owner.maxdamageStat) * this._effect.damageEffect.bonusDamage / 100) * this._stacks;
+
+                this.dealDamage(carrier, timeElsaped)
+            }
         }
     }
 
-    public dealDamage(carrier:Enemy, damageEffect:auraDamageEffect, timeElsaped:number, modifier:number = 1, critModifier:number = 0):void {
-        // resetTick timer
-        this.tickTime = Math.round(__calcHasteBonus(damageEffect.tickIndex * 10, this.owner.hasteStat)) * 100;
-
+    public dealDamage(carrier:Enemy, timeElsaped:number, modifier:number = 1, critModifier:number = 0):void {
         let critChance:number = this.owner.criticalStat + critModifier;
         let isCrit:boolean = false;
 
@@ -155,12 +158,8 @@ export default class Aura {
             }
         }
 
-        if (effect.damageEffect) {
-            if (effect.damageEffect.triggeredDamage)
-                this.damageDeal = effect.damageEffect.bonusDamage * this._stacks;
-            else
-                this.damageDeal = ((this.owner.mindamageStat + this.owner.maxdamageStat) / 2 * effect.damageEffect.bonusDamage / 100) * this._stacks;
-        }
+        if (effect.damageEffect?.triggeredDamage)
+            this.damageDeal = effect.damageEffect.baseDamage + effect.damageEffect.bonusDamage * this._stacks;
 
         // update Effect
         this._effect = effect;

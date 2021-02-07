@@ -33,6 +33,7 @@ ability=push()
 
 #UnholyWarcry
 ability.id=2
+ability.once=1
 ability.rank=4
 ability=push()
 

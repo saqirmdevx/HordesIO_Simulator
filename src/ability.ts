@@ -9,21 +9,15 @@ export enum abilityList {
     WAR_SLASH = 0,
     WAR_CRESCENTSWIPE = 1,
     WAR_UNHOLYWARCRY = 2,
-    WAR_UNHOLYWARCRY_AURA = 1001,
 
     WAR_CENTRIFUGAL_LACERATION = 3,
-    WAR_CENTRIFUGAL_LACERATION_AURA = 1002,
-
     WAR_ARMOR_REINFORCEMENT = 4,
-
     WAR_TAUNT = 5,
     WAR_CHARGE = 6,
     WAR_CRUSADERS_COURAGE = 7,
-    WAR_CRUSADERS_COURAGE_AURA = 1004,
 
     WAR_BULWARK = 8,
-    WAR_BULWARK_AURA_BLOCK = 1005,
-    WAR_BULWARK_AURA_DAMAGE = 1006,
+    WAR_BULWARK_AURA_DAMAGE = 1000,
 
     WAR_COLOSSAL_RECONSTRUCTION = 9,
     WAR_TEMPERING = 10,
@@ -36,22 +30,11 @@ export enum abilityList {
     MAGE_ICEBOLT_INSTANT = 2003,
 
     MAGE_ICICLEORB = 21,
-
     MAGE_CHILLINGRADIANCE = 22,
-    MAGE_CHILLINGRADIANCE_AURA = 2004,
-
     MAGE_ENCHANT = 23,
-    MAGE_ENCHANT_AURA = 2005,
-
     MAGE_ARCTIC_AURA = 24,
-    MAGE_ARCTIC_AURA_AURA = 2006,
-
     MAGE_HYPOTHERMIC_FRENZY = 25,
-    MAGE_HYPOTHERMIC_FRENZY_AURA = 2007,
-
     MAGE_ICE_SHIELD = 26,
-    MAGE_ICE_SHIELD_AURA = 2008, //Unused
-
     MAGE_TELEPORT = 27,
 
     /*** Archer Abilites */
@@ -62,22 +45,20 @@ export enum abilityList {
     ARCHER_PRECISE_SHOT_INSTANT = 3001, /** Applied by Dash */
 
     ARCHER_DASH = 30,
-
     ARCHER_SERPENT_ARROWS = 31,
-
     ARCHER_POISON_ARROWS = 32,
-    ARCHER_POISON_ARROWS_AURA = 3002, /** applied by precise shot if has poison arrows */
-
     ARCHER_INVIGORATE = 33,
-    ARCHER_INVIGORATE_AURA = 3003,
-
     ARCHER_PATHFINDING = 34,
-    ARCHER_PATHFINDING_AURA = 3004, /** UNUSED */
-
     ARCHER_CRANIAL_PUNCTURES = 35, /** Passive */
-
     ARCHER_TEMPORAL_DILATATION = 36,
-    ARCHER_TEMPORAL_DILATATION_AURA = 3005,
+
+    /** Shaman Abilites ! Only DPS */ 
+    SHAMAN_DECAY = 37,
+    SHAMAN_PLAGUESPREADER = 38,
+    SHAMAN_SOUL_HARVEST = 39,
+    SHAMAN_CANINE_HOWL = 40,
+    SHAMAN_MIMIRS_WELL = 41,
+    SHAMAN_SPIRIT_ANIMAL = 42,
 
     /** item abilites */
     ITEM_SMALL_MANA_POTION = 5001,
@@ -85,7 +66,7 @@ export enum abilityList {
     ITEM_LARGE_MANA_POTION = 5003,
     ITEM_TATTOOED_SKULL = 5004,
 
-    ITEM_MANA_POTION_AURA = 6001,
+    ITEM_MANA_POTION_AURA = 6000,
 }
 
 /** This is used as input data */
@@ -99,7 +80,8 @@ export interface abilityData {
         },
         aura?:Array<any>,
         cooldown?:abilityList
-    }
+    },
+    once:boolean
 }
 
 export interface spellEffect {
@@ -128,12 +110,18 @@ export default abstract class Ability {
     public forced:boolean = false;
 
     public manaCost:number = 0;
+    public once:boolean = false;
 
     public isItem:boolean = false;
 
     private _storeEffect: spellEffect|null = null;
 
     private _conditions:any;
+    get hasConditions():boolean {
+        if (Object.keys(this._conditions).length > 0)
+            return true;
+        return false;
+    }
 
     protected maxRank:number = 5;
 
@@ -141,6 +129,7 @@ export default abstract class Ability {
         this.id = abilityData.id;
         this.rank = abilityData.rank;
         this.owner = owner;
+        this.once = abilityData.once;
 
         this._conditions = abilityData.condition;
     }
@@ -209,14 +198,17 @@ export default abstract class Ability {
         /** If ability is AOE then deal damage multiple times */
         if (this.isAoe && Simulation.targets > 1) {
             let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
-            let enemyList = new EnemyListShuffle(Enemy.list, targets, true);
-            for (let i = 0; i < targets; i++) {
-                if (randomizeTarget) {
-                    this.doEffect(enemyList.next(), effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
-                    continue;
+            if (randomizeTarget) {
+                let enemyList = new EnemyListShuffle(Enemy.list, targets, true);
+                let target = enemyList.next();
+                while (target) {
+                    this.doEffect(target, effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
+                    target = enemyList.next();
                 }
-                this.doEffect(Enemy.list[i], effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
             }
+            else
+                for (let i = 0; i < targets; i++)
+                    this.doEffect(Enemy.list[i], effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
             return;
         }
         this.doEffect(Enemy.list[0], effect, timeElsaped, {damageMod:damageMod, critMod: critMod});
@@ -225,8 +217,8 @@ export default abstract class Ability {
     /**
      * Rewritable method in script - It is invoked by onCasted, This method can be invoked multiple times when ability is AOE
      */
-    protected doEffect(target:Enemy, effect:spellEffect, timeElsaped:number, {damageMod = 1, critMod = 0} = {}):number {
-        let damageDone:number = Math.floor(effect.baseDamage + __random(this.owner.mindamageStat, this.owner.maxdamageStat) * effect.bonusDamage / 100);
+    protected doEffect(target:Enemy, effect:spellEffect, timeElsaped:number, {damageMod = 1, critMod = 0, name = this.name} = {}):number {
+        let damageDone:number = effect.baseDamage + __random(this.owner.mindamageStat, this.owner.maxdamageStat) * effect.bonusDamage / 100;
 
         if (damageDone > 0) {
             let critChance:number = this.owner.criticalStat + critMod;
@@ -237,7 +229,7 @@ export default abstract class Ability {
                 isCrit = true; 
             }
 
-            let damage = this.owner.dealDamage(target, damageDone, {timeElsaped: timeElsaped, name: this.name, isCrit: isCrit}, damageMod);
+            let damage = this.owner.dealDamage(target, damageDone, {timeElsaped: timeElsaped, name: name, isCrit: isCrit}, damageMod);
             this.onImpact(target, damage, effect, timeElsaped);
             return damage;
         }
@@ -263,31 +255,22 @@ export default abstract class Ability {
     /** for customScripts if condition is passed it can cast */
     public castCondition():boolean {
         let result:boolean = true;
-        if (Object.keys(this._conditions).length > 0) {
-            if (this._conditions.mana) 
-                result = this._conditions.mana.negated ? this.owner.getManaPercentage() < this._conditions.mana.value : this.owner.getManaPercentage() > this._conditions.mana.value;
-        
-            if (this._conditions.aura) {
-                this._conditions.aura.forEach((condition:any) => {
-                    if (!condition.negated)
-                        result = false;
-                    else
-                        result = true;
+        if (this._conditions.mana) 
+            result = this._conditions.mana.negated ? this.owner.getManaPercentage() < this._conditions.mana.value : this.owner.getManaPercentage() > this._conditions.mana.value;
+    
+        if (this._conditions.aura)
+            for (const condition of this._conditions.aura) 
+                if (this.owner.hasAura(condition.value) || Enemy.list[0].hasAura(condition.value, this.owner))
+                    result = !condition.negated;
 
-                    if (this.owner.hasAura(condition.value) || Enemy.list[0].hasAura(condition.value, this.owner))
-                        result = !result;
-                })
-            }
-
-            if (this._conditions.cooldown) {
-                let ability:Ability|undefined = this.owner.getAbility(this._conditions.cooldown.value);
-                if (ability) 
-                    result = this._conditions.cooldown.negated ? !ability.onCooldown() : ability.onCooldown();
-            }
-
-            if (this._conditions.forced !== undefined)
-                this.forced = this._conditions.forced;
+        if (this._conditions.cooldown) {
+            let ability:Ability|undefined = this.owner.getAbility(this._conditions.cooldown.value);
+            if (ability) 
+                result = this._conditions.cooldown.negated ? !ability.onCooldown() : ability.onCooldown();
         }
+
+        if (this._conditions.forced !== undefined)
+            this.forced = this._conditions.forced;
         return result;
     }
 

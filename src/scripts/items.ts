@@ -2,7 +2,7 @@ import Ability, { spellEffect, abilityList, abilityData } from "../ability.js";
 import Player from "../player.js";
 
 import { auraEffect } from "../aura.js";
-import * as AuraScript from "../aura_scripts.js";
+import * as AuraScripts from "../aura_scripts.js";
 
 // /*** Mage abilites */
 export class ManaPotion extends Ability {
@@ -19,10 +19,12 @@ export class ManaPotion extends Ability {
         this.maxRank = 3;
         this.isItem = true;
 
+        this.name = "[Item] "
+
         switch (rank) {
-            case 1: this.name = "Small mana potion"; break;
-            case 2: this.name = "Medium mana potion"; break;
-            case 3: this.name = "Large mana potion"; break;
+            case 1: this.name += "Small mana potion"; break;
+            case 2: this.name += "Medium mana potion"; break;
+            case 3: this.name += "Large mana potion"; break;
             default: break;
         }
 
@@ -54,7 +56,7 @@ export class ManaPotion extends Ability {
             hasDamageEffect: false,
             duration: this._duration,
             rank: this.rank,
-            script: AuraScript.ManaPotion
+            script: AuraScripts.ManaPotion
         }
         this.owner.applyAura(auraEffect);
     }
@@ -70,7 +72,7 @@ export class TatooedSkull extends Ability {
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
-        this.name = `Tattooed skull ${abilityData.rank}`;
+        this.name = `[Item] Tattooed skull`;
 
         this.isItem = true
         this.maxRank = 1;

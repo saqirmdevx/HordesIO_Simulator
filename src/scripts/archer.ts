@@ -5,6 +5,7 @@ import Enemy, { EnemyListShuffle } from "../enemy.js";
 import Aura, { auraEffect } from "../aura.js";
 import Simulation from "../simulation.js"
 
+/** Archer Abilites */
 export class SwiftShot extends Ability {
     private _baseDamage:number = 5;
     private _bonusdamage:Array<number> = [0, 56, 84, 112, 140, 168]; // % Based on min/max damage
@@ -70,7 +71,6 @@ export class PreciseShot extends Ability {
 
         this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = SwiftShot.aura;
-        this.forced = true;
 
         if (this.rank > this.maxRank || this.rank < 0)
             throw new Error(`APL DATA Error - ${this.name} rank is out of bound`);
@@ -122,9 +122,13 @@ export class PreciseShot extends Ability {
             if (this.isAoe && this._serpentArrows && Simulation.targets > 1) {
                 let targets:number = Simulation.targets > this.maxTargets ? this.maxTargets : Simulation.targets;
                 let enemyList = new EnemyListShuffle(Enemy.list, targets, false);
+
+                let target = enemyList.next();
                 /** We iterate over other targets if there are more */
-                for (let i = 1; i < targets; i++) 
-                    this.doEffect(enemyList.next(), effect, timeElsaped, {damageMod: SerpentArrows.bonusDamage[this._serpentArrows.rank]});
+                while (target) {
+                    this.doEffect(target, effect, timeElsaped, {damageMod: SerpentArrows.bonusDamage[this._serpentArrows.rank]});
+                    target = enemyList.next();
+                }
             }
         }
     }
@@ -213,7 +217,7 @@ export class PoisonArrows extends Ability {
     public static bonusDamage:Array<number> = [0, 0.030, 0.055, 0.080, 0.105, 0.130];
     public static duration:number = 10000;
 
-    public static aura:abilityList = abilityList.ARCHER_POISON_ARROWS_AURA;
+    public static aura:abilityList = abilityList.ARCHER_POISON_ARROWS;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -230,7 +234,7 @@ export class Invigorate extends Ability {
     private _bonusDamage:Array<number> = [0, 0.09, 0.18, 0.27, 0.36, 0.45];
     private _manaRegen:Array<number> = [0, 0.08, 0.13, 0.18, 0.23, 0.28];
 
-    private _applyAura:abilityList = abilityList.ARCHER_INVIGORATE_AURA;
+    private _applyAura:abilityList = abilityList.ARCHER_INVIGORATE;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -282,7 +286,7 @@ export class Pathfinding extends Ability {
     private _manaCost:Array<number> = [0, 12, 19, 26, 33, 40]
     //private _duration:number = 10000;
 
-    private _applyAura:abilityList = abilityList.ARCHER_PATHFINDING_AURA;
+    private _applyAura:abilityList = abilityList.ARCHER_PATHFINDING;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
@@ -347,13 +351,13 @@ export class TemporalDilatation extends Ability {
     private _manaCost:Array<number> = [0, 10, 15, 20, 25, 30];
     private _cooldown:number = 120000
 
-    private _applyAura:abilityList = abilityList.ARCHER_TEMPORAL_DILATATION_AURA;
+    private _applyAura:abilityList = abilityList.ARCHER_TEMPORAL_DILATATION;
 
     constructor(abilityData:abilityData, owner:Player) {
         super(abilityData, owner);
         this.name = `Temporal Dilatation ${abilityData.rank}`;
-
         this.maxRank = 4;
+
         this.manaCost = this._manaCost[this.rank];
         this.applyAuraId = this._applyAura; // only for condition
 

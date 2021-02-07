@@ -7,7 +7,7 @@ simulationtime=300000 # 5minute battle
 
 targets=3
 simulators=300
-mitigation=0.21640152412620914 #0.21640152412620914 damageReduction in %
+mitigation=0.21640152412620914
 
 #Stats of player (Mana is not properity of stat)
 autoattack=1
@@ -65,6 +65,7 @@ ability=push()
 #Temporal Dilatation
 ability.id=36
 ability.rank=4
+ability.once=1
 ability=push()
 
 ### Items ### 

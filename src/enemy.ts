@@ -56,9 +56,9 @@ export default class Enemy {
     }
 
     public damageTaken(damageDone:number, owner:Player, {timeElsaped, name, isCrit = false}):void {
-        let damage = this.damageReductions(damageDone);
-        if (isCrit)
-            damage *= Placeholders.CRITICAL_DAMAGE;
+        let damage = isCrit ? damageDone * Placeholders.CRITICAL_DAMAGE : damageDone;
+
+        damage = this.damageReductions(damage);
 
         owner.damageDone += damage;
 
@@ -71,24 +71,20 @@ export default class Enemy {
 
     public damageReductions(damage:number):number {
         damage = damage * (1 - this._mitigation);
-
-        return Math.floor(damage);
+        return Math.round(damage);
     }
 }
 
 export class EnemyListShuffle {
     private _list:Array<Enemy> = [];
-    public last:boolean = false;
 
     constructor(list:Array<Enemy>, size:number, countFirst:boolean = true) {
         this._list = [...list].slice(countFirst ? 0 : 1, size);
     }
 
-    public next():Enemy {
-        if (this._list.length == 1) {
-            this.last = true;
-            return this._list[0]; // return last
-        }
+    public next():Enemy|null {
+        if (this._list.length == 0) 
+            return null; // return last
         
         let generateIndex = Math.floor(Math.random() * (this._list.length));
         let enemy:Enemy = this._list[generateIndex];
