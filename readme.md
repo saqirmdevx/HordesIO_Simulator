@@ -1,18 +1,18 @@
 # HordesIO_Simulator
 
-<a href="https://quentis.itch.io/hordesio-simulationcraft"> ## Simulation page </a>
+## <a href="https://saqirmdevx.itch.io/hordesio-simulationcraft"> Simulationcraft app </a>
 
 This is simulation for <a href="https://hordes.io"> Hordes.Io </a>
 
 ## APL Example
 
-[Warrior-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/warrior.siml)
+[Warrior-APL](https://github.com/saqirmdevx/HordesIO_Simulator/blob/master/warrior.siml)
 
-[Mage-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/mage.siml)
+[Mage-APL](https://github.com/saqirmdevx/HordesIO_Simulator/blob/master/mage.siml)
 
-[Archer-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/archer.siml)
+[Archer-APL](https://github.com/saqirmdevx/HordesIO_Simulator/blob/master/archer.siml)
 
-[Shaman-APL](https://github.com/Quentis/HordesIO_Simulator/blob/master/shaman.siml)
+[Shaman-APL](https://github.com/saqirmdevx/HordesIO_Simulator/blob/master/shaman.siml)
 
 
 ## How APL Works? 
@@ -46,9 +46,9 @@ stats.attackSpeed=0.0 # Defines player's attack speed !!! Game conversion is -> 
 ```
 
 ### How to add ability to apl script
-Ability requires ID and Rank and push() function. You can add multiple abilites
+Ability requires ID, Rank and end with push() function.
 
-Every ability can contain some conditions like - Required Aura, Required mana %, If certain ability is on Cooldown. In example below i show you how to add certain conditions
+Every ability contains some conditions like - Required Aura, Required mana %, If certain ability is on Cooldown. In example below i show you how to add certain conditions
 
 Example: 
 ```php
@@ -84,10 +84,10 @@ More conditions will be added in future.
 
 ### Ability Queue (Cast consequence)
 This is used to make combos and own casting order
-All abilites will be casted in order. !! Only if they met conditions !! if condition is not met, it will go to next ability in queue
+All abilites will be casted in order. Only if they met conditions, if condition is not met, it will go to next ability in queue.
 
-!!! You have to add all abilites inside queue or they will be never casted in simulation !!!
-!! You can use same abilityId multiple times like - ... Ice bolt - Icicle Orb - Ice bolt ...
+- You have to add all abilites inside queue or they will be never casted in simulation !
+- You can use same abilityId multiple times like - ... Ice bolt - Icicle Orb - Ice bolt ...
 ```php
 ...
 abilityQue.add=23 #Enchant - Will be casted first
@@ -99,8 +99,8 @@ abilityQue.add=20 #Icebolt - Will be casted 6. !!! This is valid syntax
 abilityQue.add=21 #Icicle Orb - Will be casted 7. and repeat from 1. ability (enchant)
 ```
 
-!!! Abilites like Enchant, Arctic Aura, unholy Warcry will be casted only if aura expires. !!!
-!!! If pointer is on abilityQue [3] and ability is on cooldown or does not met conditions it will turn to position [4] and so ... !!!
+- Abilites like Enchant, Arctic Aura, unholy Warcry will be casted only if aura expires. We can apply `ability.once=1` and ability will be casted only once
+- If pointer is on abilityQue [3] and ability is on cooldown or does not met conditions it will turn to position [4] and so ...
 
 ## Ability and Aura List of IDs
 
