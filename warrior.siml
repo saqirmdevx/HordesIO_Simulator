@@ -2,7 +2,7 @@
 # - is used for comment line
 
 debug=1
-slowmotion=0 # Simulation in real time
+slowmotion=21 # Simulation in real time
 simulationtime=300000 # 5minute battle
 
 targets=3
@@ -11,9 +11,9 @@ mitigation=0.21640152412620914 #damageReduction in %
 
 #Stats of player (Mana is not properity of stat)
 autoattack=1
-mana=255
+mana=1000
 stats.manaregen=5
-stats.block=0.3
+stats.block=2,0
 stats.mindamage=144
 stats.maxdamage=172
 stats.haste=0.25
