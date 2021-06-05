@@ -9,7 +9,7 @@ targets=3
 simulators=300
 mitigation=0.21640152412620914 #damageReduction in %
 
-#Stats of player (Mana is not properity of stat)
+#Stats of sliceandice (Mana is not properity of stat)
 autoattack=1
 mana=255
 stats.manaregen=5
